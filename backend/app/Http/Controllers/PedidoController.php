@@ -7,43 +7,53 @@ use Illuminate\Http\Request;
 
 class PedidoController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    // Listar pedidos
     public function index()
     {
-        //
+        return Pedido::with(['cliente', 'metodoPago', 'estado', 'modalidad'])->get();
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
+    // Buscar pedido por ID
+    public function show($id)
+    {
+        $pedido = Pedido::with(['cliente', 'metodoPago', 'estado', 'modalidad'])
+                        ->find($id);
+
+        if (!$pedido) {
+            return response()->json(['error' => 'Pedido no encontrado'], 404);
+        }
+
+        return $pedido;
+    }
+
+    // Crear pedido
     public function store(Request $request)
     {
-        //
+        $data = $request->validate([
+            'fecha_hora' => 'required|date',
+            'monto_total' => 'required|numeric',
+            'dni_cliente' => 'required',
+            'id_metodo_de_pago' => 'required|integer',
+            'id_estado_pedido' => 'required|integer',
+            'id_modalidad_de_entrega' => 'required|integer',
+        ]);
+
+        $pedido = Pedido::create($data);
+
+        return response()->json($pedido, 201);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Pedido $pedido)
+    // Eliminar pedido
+    public function destroy($id)
     {
-        //
-    }
+        $pedido = Pedido::find($id);
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Pedido $pedido)
-    {
-        //
-    }
+        if (!$pedido) {
+            return response()->json(['error' => 'Pedido no encontrado'], 404);
+        }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Pedido $pedido)
-    {
-        //
+        $pedido->delete();
+
+        return response()->json(['message' => 'Pedido eliminado']);
     }
 }
