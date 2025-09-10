@@ -16,8 +16,8 @@ class PedidoController extends Controller
     // Buscar pedido por ID
     public function show($id)
     {
-        $pedido = Pedido::with(['dni_cliente', 'id_metodo_de_pago', 'id_estado_pedido', 'id_modalidad_de_entrega'])
-                        ->find($id);
+       $pedido = Pedido::with(['cliente', 'metodoPago', 'estado', 'modalidad'])
+                ->find($id);
 
         if (!$pedido) {
             return response()->json(['error' => 'Pedido no encontrado'], 404);
@@ -33,9 +33,9 @@ class PedidoController extends Controller
             'fecha_hora' => 'required|date',
             'monto_total' => 'required|numeric',
             'dni_cliente' => 'required',
-            'id_metodo_de_pago' => 'required|integer',
+            'id_metodo_pago' => 'required|integer',
             'id_estado_pedido' => 'required|integer',
-            'id_modalidad_de_entrega' => 'required|integer',
+            'id_modalidad_entrega' => 'required|integer',
         ]);
 
         $pedido = Pedido::create($data);
