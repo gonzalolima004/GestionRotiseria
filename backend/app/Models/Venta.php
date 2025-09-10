@@ -8,7 +8,7 @@ class Venta extends Model
 {
     protected $table = 'venta';
     protected $primaryKey = 'id_venta';
-    public $timestamps = false; // tu tabla no tiene created_at ni updated_at
+    public $timestamps = false;
 
     protected $fillable = [
         'fecha',
@@ -16,7 +16,6 @@ class Venta extends Model
         'id_pedido'
     ];
 
-    // Relación: una venta pertenece a un pedido
     public function pedido()
     {
         return $this->belongsTo(Pedido::class, 'id_pedido');

@@ -19,7 +19,6 @@ class Pedido extends Model
         'id_modalidad_entrega',
     ];
 
-    // Relaciones
     public function cliente() {
         return $this->belongsTo(Cliente::class, 'dni_cliente');
     }
@@ -34,5 +33,9 @@ class Pedido extends Model
 
     public function modalidad() {
         return $this->belongsTo(ModalidadEntrega::class, 'id_modalidad_entrega');
+    }
+
+    public function detalles() {
+        return $this->hasMany(DetallePedido::class, 'id_pedido', 'id_pedido');
     }
 }

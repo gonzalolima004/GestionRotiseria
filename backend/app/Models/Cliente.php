@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Cliente extends Model
 {
     protected $table = 'cliente';
-    protected $primaryKey = 'dni_cliente'; // se verifica con el dni
+    protected $primaryKey = 'dni_cliente';
     public $incrementing = false;  
     protected $keyType = 'string'; 
     public $timestamps = false;
@@ -19,7 +19,6 @@ class Cliente extends Model
         'direccion_cliente'
     ];
 
-    // Relación: un cliente puede tener muchos pedidos
     public function pedidos()
     {
         return $this->hasMany(Pedido::class, 'dni_cliente');

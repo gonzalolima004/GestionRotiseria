@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Detalle_Pedido;
+use App\Models\DetallePedido;
 use Illuminate\Http\Request;
 
 class DetallePedidoController extends Controller

@@ -16,8 +16,8 @@ class PedidoController extends Controller
     // Buscar pedido por ID
     public function show($id)
     {
-       $pedido = Pedido::with(['cliente', 'metodoPago', 'estado', 'modalidad'])
-                ->find($id);
+        $pedido = Pedido::with(['cliente', 'metodoPago', 'estado', 'modalidad', 'detalles.producto'])
+            ->find($id);
 
         if (!$pedido) {
             return response()->json(['error' => 'Pedido no encontrado'], 404);
@@ -41,6 +41,33 @@ class PedidoController extends Controller
         $pedido = Pedido::create($data);
 
         return response()->json($pedido, 201);
+    }
+
+    // Actualizar pedido
+    // Actualizar pedido
+    public function update(Request $request, $id)
+    {
+        $pedido = Pedido::find($id);
+
+        if (!$pedido) {
+            return response()->json(['error' => 'Pedido no encontrado'], 404);
+        }
+
+        $data = $request->validate([
+            'fecha_hora' => 'sometimes|date',
+            'monto_total' => 'sometimes|numeric',
+            'dni_cliente' => 'sometimes|string|exists:cliente,dni_cliente',
+            'id_metodo_pago' => 'sometimes|integer|exists:metodo_pago,id_metodo_pago',
+            'id_estado_pedido' => 'sometimes|integer|exists:estado_pedido,id_estado_pedido',
+            'id_modalidad_entrega' => 'sometimes|integer|exists:modalidad_entrega,id_modalidad_entrega',
+        ]);
+
+        $pedido->update($data);
+
+        return response()->json([
+            'message' => 'Pedido actualizado correctamente',
+            'pedido' => $pedido
+        ]);
     }
 
     // Eliminar pedido
