@@ -6,26 +6,26 @@ use Illuminate\Database\Eloquent\Model;
 
 class Pedido extends Model
 {
-    protected $table = 'pedidos'; // tu tabla
-    protected $primaryKey = 'id_pedido'; // clave primaria
-    public $timestamps = true; // created_at y updated_at
+    protected $table = 'pedido'; 
+    protected $primaryKey = 'id_pedido';
+    public $timestamps = false;
 
     protected $fillable = [
         'fecha_hora',
         'monto_total',
         'dni_cliente',
-        'id_metodo_de_pago',
+        'id_metodo_pago',
         'id_estado_pedido',
-        'id_modalidad_de_entrega',
+        'id_modalidad_entrega',
     ];
 
     // Relaciones
     public function cliente() {
-        return $this->belongsTo(Cliente::class, 'dni_cliente', 'dni');
+        return $this->belongsTo(Cliente::class, 'dni_cliente');
     }
 
     public function metodoPago() {
-        return $this->belongsTo(MetodoPago::class, 'id_metodo_de_pago');
+        return $this->belongsTo(MetodoPago::class, 'id_metodo_pago');
     }
 
     public function estado() {
@@ -33,6 +33,6 @@ class Pedido extends Model
     }
 
     public function modalidad() {
-        return $this->belongsTo(ModalidadEntrega::class, 'id_modalidad_de_entrega');
+        return $this->belongsTo(ModalidadEntrega::class, 'id_modalidad_entrega');
     }
 }
