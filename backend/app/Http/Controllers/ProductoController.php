@@ -27,7 +27,7 @@ public function store(Request $request)
             'descripcion_producto' => 'nullable|string',
             'precio_producto' => 'required|numeric',
             'disponible' => 'required|boolean',
-            'id_categoria' => 'required|exists:Categoria,id_categoria'
+            'id_categoria' => 'required|exists:categoria,id_categoria'
         ]);
 
         $producto = Producto::create($request->all());
@@ -68,7 +68,7 @@ public function store(Request $request)
             'descripcion_producto' => 'sometimes|nullable|string',
             'precio_producto' => 'sometimes|required|numeric',
             'disponible' => 'sometimes|required|boolean',
-            'id_categoria' => 'sometimes|required|exists:Categoria,id_categoria'
+            'id_categoria' => 'sometimes|required|exists:categoria,id_categoria'
         ]);
 
         $producto->update($request->all());
