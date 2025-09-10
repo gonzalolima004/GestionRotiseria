@@ -12,7 +12,7 @@ class CategoriaController extends Controller
      */
     public function index()
     {
-        return response()->json(Categoria::select('id_categoria', 'nombre_categoria')->get(), 200);
+       return Categoria::all();
     }
 
     /**
@@ -21,20 +21,31 @@ class CategoriaController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'nombre_categoria' => 'required|string|max:255|unique:Categoria,nombre_categoria',
+            'nombre_categoria' => 'required|string|max:255|unique:categoria,nombre_categoria',
         ]);
 
         $categoria = Categoria::create([
             'nombre_categoria' => $request->nombre_categoria,
         ]);
+
+        return response()->json([
+            'message' => 'Categoría creada correctamente',
+            'data' => $categoria
+        ], 201);
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(Categoria $categoria)
-    {
-        return response()->json($categoria, 200);
+    public function show(Categoria $categoria){
+        try {
+            return response()->json($categoria, 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Categoria no encontrada',
+                'error' => $e->getMessage()
+            ], 404);
+        }
     }
 
     /**
@@ -43,7 +54,7 @@ class CategoriaController extends Controller
     public function update(Request $request, Categoria $categoria)
     {
         $request->validate([
-            'nombre_categoria' => 'required|string|max:255|unique:Categoria,nombre_categoria,' . $categoria->id_categoria . ',id_categoria',
+            'nombre_categoria' => 'required|string|max:255|unique:categoria,nombre_categoria,' . $categoria->id_categoria . ',id_categoria',
         ]);
 
         $categoria->update([

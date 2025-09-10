@@ -12,8 +12,7 @@ class ProductoController extends Controller
      */
     public function index()
     {
-        $productos = Producto::with('categoria')->get();
-        return response()->json($productos);
+        return Producto::all();
     }
 
     /**
@@ -27,7 +26,7 @@ public function store(Request $request)
             'descripcion_producto' => 'nullable|string',
             'precio_producto' => 'required|numeric',
             'disponible' => 'required|boolean',
-            'id_categoria' => 'required|exists:Categoria,id_categoria'
+            'id_categoria' => 'required|exists:categoria,id_categoria'
         ]);
 
         $producto = Producto::create($request->all());
@@ -44,18 +43,16 @@ public function store(Request $request)
     /**
      * Display the specified resource.
      */
-    public function show(Producto $producto)
-{
-    try {
-        $producto->load('categoria');
-        return response()->json($producto, 200);
-    } catch (\Exception $e) {
-        return response()->json([
-            'message' => 'Error al obtener el producto',
-            'error' => $e->getMessage()
-        ], 400);
+    public function show(Producto $producto){
+        try {
+            return response()->json($producto, 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Producto no encontrado',
+                'error' => $e->getMessage()
+            ], 404);
+        }
     }
-}
 
 
     /**
@@ -68,7 +65,7 @@ public function store(Request $request)
             'descripcion_producto' => 'sometimes|nullable|string',
             'precio_producto' => 'sometimes|required|numeric',
             'disponible' => 'sometimes|required|boolean',
-            'id_categoria' => 'sometimes|required|exists:Categoria,id_categoria'
+            'id_categoria' => 'sometimes|required|exists:categoria,id_categoria'
         ]);
 
         $producto->update($request->all());

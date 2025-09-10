@@ -19,5 +19,14 @@ class DatabaseSeeder extends Seeder
             'name' => 'Test User',
             'email' => 'test@example.com',
         ]);
+        $this->call([
+            MetodoPagoSeeder::class,
+        ]);
+        $this->call([
+            EstadoPedidoSeeder::class,
+        ]);
+        $this->call([
+            ModalidadEntregaSeeder::class,
+        ]);
     }
 }

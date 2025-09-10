@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Producto extends Model
 {
-    protected $table = 'Producto';
+    protected $table = 'producto';
     protected $primaryKey = 'id_producto';
     public $timestamps = false;
 
@@ -18,7 +18,6 @@ class Producto extends Model
         'id_categoria'
     ];
 
-    // Relación con categoría
     public function categoria()
     {
         return $this->belongsTo(Categoria::class, 'id_categoria', 'id_categoria');
