@@ -12,8 +12,7 @@ class ProductoController extends Controller
      */
     public function index()
     {
-        $productos = Producto::with('categoria')->get();
-        return response()->json($productos);
+        return Producto::all();
     }
 
     /**
@@ -44,18 +43,16 @@ public function store(Request $request)
     /**
      * Display the specified resource.
      */
-    public function show(Producto $producto)
-{
-    try {
-        $producto->load('categoria');
-        return response()->json($producto, 200);
-    } catch (\Exception $e) {
-        return response()->json([
-            'message' => 'Error al obtener el producto',
-            'error' => $e->getMessage()
-        ], 400);
+    public function show(Producto $producto){
+        try {
+            return response()->json($producto, 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Producto no encontrado',
+                'error' => $e->getMessage()
+            ], 404);
+        }
     }
-}
 
 
     /**

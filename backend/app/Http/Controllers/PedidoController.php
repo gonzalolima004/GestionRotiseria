@@ -10,7 +10,7 @@ class PedidoController extends Controller
     // Listar pedidos
     public function index()
     {
-        return Pedido::with(['dni_cliente', 'id_metodo_de_pago', 'id_estado_pedido', 'id_modalidad_de_entrega'])->get();
+        return Pedido::all();
     }
 
     // Buscar pedido por ID
