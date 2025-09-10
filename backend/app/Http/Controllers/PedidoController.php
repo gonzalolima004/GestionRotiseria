@@ -10,13 +10,13 @@ class PedidoController extends Controller
     // Listar pedidos
     public function index()
     {
-        return Pedido::with(['cliente', 'metodoPago', 'estado', 'modalidad'])->get();
+        return Pedido::with(['dni_cliente', 'id_metodo_de_pago', 'id_estado_pedido', 'id_modalidad_de_entrega'])->get();
     }
 
     // Buscar pedido por ID
     public function show($id)
     {
-        $pedido = Pedido::with(['cliente', 'metodoPago', 'estado', 'modalidad'])
+        $pedido = Pedido::with(['dni_cliente', 'id_metodo_de_pago', 'id_estado_pedido', 'id_modalidad_de_entrega'])
                         ->find($id);
 
         if (!$pedido) {
