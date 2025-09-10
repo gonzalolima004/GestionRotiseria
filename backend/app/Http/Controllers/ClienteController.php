@@ -8,42 +8,75 @@ use Illuminate\Http\Request;
 class ClienteController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Listar todos los clientes
      */
     public function index()
     {
-        //
+        $clientes = Cliente::with('pedidos')->get();
+        return response()->json($clientes);
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Crear un nuevo cliente
      */
     public function store(Request $request)
     {
-        //
+        try {
+            $request->validate([
+                'dni_cliente'       => 'required|string|max:20|unique:cliente,dni_cliente',
+                'nombre_cliente'    => 'required|string|max:50',
+                'telefono_cliente'  => 'nullable|string|max:50',
+                'direccion_cliente' => 'nullable|string|max:50'
+            ]);
+
+            $cliente = Cliente::create($request->all());
+
+            return response()->json($cliente, 201);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Error al crear el cliente',
+                'error'   => $e->getMessage()
+            ], 400);
+        }
     }
 
     /**
-     * Display the specified resource.
+     * Mostrar un cliente específico
      */
     public function show(Cliente $cliente)
     {
-        //
+        $cliente->load('pedidos');
+        return response()->json($cliente);
     }
 
     /**
-     * Update the specified resource in storage.
+     * Actualizar un cliente
      */
     public function update(Request $request, Cliente $cliente)
     {
-        //
+        $request->validate([
+            'nombre_cliente'    => 'sometimes|required|string|max:50',
+            'telefono_cliente'  => 'sometimes|nullable|string|max:50',
+            'direccion_cliente' => 'sometimes|nullable|string|max:50'
+        ]);
+
+        $cliente->update($request->all());
+
+        return response()->json([
+            'message' => 'Cliente actualizado correctamente',
+            'data'    => $cliente
+        ], 200);
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Eliminar un cliente
      */
     public function destroy(Cliente $cliente)
     {
-        //
+        $cliente->delete();
+
+        return response()->json([
+            'message' => 'Cliente eliminado correctamente'
+        ], 200);
     }
 }
