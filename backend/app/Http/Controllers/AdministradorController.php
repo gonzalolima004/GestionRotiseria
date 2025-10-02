@@ -8,7 +8,11 @@ use Illuminate\Support\Facades\Hash;
 
 class AdministradorController extends Controller
 {
-   
+    public function index()
+    {
+       return Administrador::all();
+    }
+
     public function show()
     {
         $admin = Administrador::first();

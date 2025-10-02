@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Pedido;
 use Illuminate\Http\Request;
+use App\Services\WhatsAppService;
+use App\Models\Cliente;
 
 class PedidoController extends Controller
 {
@@ -45,7 +47,7 @@ class PedidoController extends Controller
 
     // Actualizar pedido
     // Actualizar pedido
-    public function update(Request $request, $id)
+    public function update(Request $request, $id, WhatsAppService $whatsapp)
     {
         $pedido = Pedido::find($id);
 
@@ -60,9 +62,24 @@ class PedidoController extends Controller
             'id_metodo_pago' => 'sometimes|integer|exists:metodo_pago,id_metodo_pago',
             'id_estado_pedido' => 'sometimes|integer|exists:estado_pedido,id_estado_pedido',
             'id_modalidad_entrega' => 'sometimes|integer|exists:modalidad_entrega,id_modalidad_entrega',
+            'tiempo_estimado' => 'sometimes|string|max:50',
         ]);
 
-        $pedido->update($data);
+        $pedido->update(collect($data)->except('tiempo_estimado')->toArray());
+
+        if (isset($data['id_estado_pedido']) && $data['id_estado_pedido'] == 2) {
+            $cliente = \App\Models\Cliente::where('dni_cliente', $pedido->dni_cliente)->first();
+    
+            if ($cliente && $cliente->telefono_cliente) {
+               
+                $tiempo = $data['tiempo_estimado'] ?? 'unos minutos';
+    
+                $mensaje = "¡Hola {$cliente->nombre_cliente}!  Tu pedido N°{$pedido->id_pedido} fue CONFIRMADO. Estará listo en {$tiempo} aproximadamente. ¡Muchas gracias!";
+    
+                $response = $whatsapp->enviarMensaje($cliente->telefono_cliente, $mensaje);
+                \Log::info("Respuesta WhatsApp:", $response);
+            }
+        }
 
         return response()->json([
             'message' => 'Pedido actualizado correctamente',
