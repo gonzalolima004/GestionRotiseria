@@ -2,32 +2,118 @@
 
 namespace App\Http\Controllers;
 
-
+use App\Models\User;
 use Illuminate\Http\Request;
-use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\Hash;
-
+use Tymon\JWTAuth\Facades\JWTAuth;
+use Tymon\JWTAuth\Exceptions\JWTException;
 class AuthController extends Controller
 {
+    public function register(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',
+                'email' => 'required|string|email|unique:users',
+                'password' => 'required|string|min:6',
+
+            ]);
+
+            $user = User::create([
+                'name' => $validated['name'],
+                'email' => $validated['email'],
+                'password' => Hash::make($validated['password']),
+
+            ]);
+    
+            return response()->json([
+                'success' => true,
+                'message' => 'Usuario creado correctamente',
+                'user' => $user
+            ], 201);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => "error",
+                'message' => 'Error de validación',
+                'errors' => $e->errors()
+            ], 422);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => "error",
+                'message' => 'Ocurrió un error al crear el usuario',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
     public function login(Request $request)
     {
-        $credentials = $request->only('email', 'password');
+        try {
+            $request->validate([
+                'email' => 'required|email',
+                'password' => 'required|string|min:6',
+            ]);
 
-        if (!$token = JWTAuth::attempt($credentials)) {
-            return response()->json(['error' => 'Credenciales inválidas'], 401);
+            $credentials = $request->only('email', 'password');
+
+
+            if (!$token = JWTAuth::attempt($credentials)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Credenciales inválidas'
+                ], 401);
+            }
+
+            // Expiración del token
+            $expiresIn = JWTAuth::factory()->getTTL() * 60;
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Login exitoso',
+                'token' => $token,
+                'token_type' => 'bearer',
+                'expires_in' => '1d' 
+            ]);
+
+        } catch (JWTException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No se pudo crear el token',
+                'error' => $e->getMessage()
+            ], 500);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error de validación',
+                'errors' => $e->errors()
+            ], 422);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error de servidor',
+                'error' => $e->getMessage()
+            ], 500);
         }
-
-        return response()->json([
-            'message' => 'Login exitoso',
-            'token' => $token,
-            'token_type' => 'bearer',
-            'expires_in' => JWTAuth::getPayload($token)->get('exp') - time()
-        ]);
     }
-
-   /*  public function logout()
+    public function logout()
     {
-        auth('api')->logout();
-        return response()->json(['message' => 'Sesión cerrada correctamente']);
-    } */
+        try {
+            JWTAuth::parseToken()->invalidate();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Logout exitoso'
+            ]);
+        
+        } catch (JWTException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No se pudo cerrar sesión',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 }

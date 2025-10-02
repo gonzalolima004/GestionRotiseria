@@ -29,7 +29,7 @@ class CategoriaController extends Controller
         ]);
 
         return response()->json([
-            'message' => 'Categoría creada correctamente',
+            'message' => 'Categoria creada correctamente',
             'data' => $categoria
         ], 201);
     }
@@ -62,7 +62,7 @@ class CategoriaController extends Controller
         ]);
 
         return response()->json([
-            'message' => 'Categoría actualizada correctamente',
+            'message' => 'Categoria actualizada correctamente',
             'data' => $categoria
         ], 200);
     }
@@ -75,7 +75,7 @@ class CategoriaController extends Controller
         $categoria->delete();
 
         return response()->json([
-            'message' => 'Categoría eliminada correctamente'
+            'message' => 'Categoria eliminada correctamente'
         ], 200);
     }
 }

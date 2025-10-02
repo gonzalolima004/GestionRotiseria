@@ -13,7 +13,7 @@ class DetallePedidoController extends Controller
     public function index()
     {
         $detalles = DetallePedido::with('pedido','producto')->get();
-        return response()->json($detalles);
+        return response()->json($detalles,200);
     }
 
     /**
@@ -29,8 +29,11 @@ public function store(Request $request)
             'subtotal' => 'required|numeric|min:0.01'
         ]);
 
-        $detalles = DetallePedido::create($request->all());
-        return response()->json($detalles, 201);
+        $detalle = DetallePedido::create($request->all());
+         $detalle->load('pedido', 'producto');
+
+
+        return response()->json($detalle, 201);
     } catch (\Exception $e) {
         return response()->json([
             'message' => 'Error al crear el detalle',
@@ -43,11 +46,11 @@ public function store(Request $request)
     /**
      * Display the specified resource.
      */
-    public function show(DetallePedido $detalles)
+    public function show(DetallePedido $detalle)
 {
     try {
-        $detalles->load('pedido', 'productp');
-        return response()->json($detalles, 200);
+        $detalle->load('pedido', 'producto');
+        return response()->json($detalle, 200);
     } catch (\Exception $e) {
         return response()->json([
             'message' => 'Error al obtener el detalle del pedido',
@@ -60,29 +63,29 @@ public function store(Request $request)
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, DetallePedido $detalles)
+    public function update(Request $request, DetallePedido $detalle)
     {
         $request->validate([
-            'id_pedido' => 'required|exists:Pedido,id_pedido',
-            'id_producto' => 'required|exists:Producto,id_producto',
+            'id_pedido' => 'required|exists:pedido,id_pedido',
+            'id_producto' => 'required|exists:producto,id_producto',
             'cantidad' => 'required|integer|min:1',
             'subtotal' => 'required|numeric|min:0.01'
         ]);
 
-        $detalles->update($request->all());
+        $detalle->update($request->all());
         
         return response()->json([
             'message' => 'Detalle de pedido actualizado correctamente',
-            'data' => $detalles
+            'data' => $detalle
         ], 200);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(DetallePedido $detalles)
+    public function destroy(DetallePedido $detalle)
     {
-        $detalles->delete();
+        $detalle->delete();
 
         return response()->json([
             'message' => 'Detalle de pedido eliminado correctamente'

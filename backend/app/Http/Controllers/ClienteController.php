@@ -23,19 +23,24 @@ class ClienteController extends Controller
     {
         try {
             $request->validate([
-                'dni_cliente'       => 'required|string|max:20|unique:cliente,dni_cliente',
-                'nombre_cliente'    => 'required|string|max:50',
-                'telefono_cliente'  => 'nullable|string|max:50',
+                'dni_cliente' => 'required|string|max:20|unique:cliente,dni_cliente',
+                'nombre_cliente' => 'required|string|max:50',
+                'telefono_cliente' => 'nullable|string|max:50',
                 'direccion_cliente' => 'nullable|string|max:50'
             ]);
 
-            $cliente = Cliente::create($request->all());
+            $cliente = Cliente::create([
+                'dni_cliente' => $request->dni_cliente,
+                'nombre_cliente' => $request->nombre_cliente,
+                'telefono_cliente' => $request->telefono_cliente ?? '', 
+                'direccion_cliente' => $request->direccion_cliente ?? ''
+            ]);
 
             return response()->json($cliente, 201);
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Error al crear el cliente',
-                'error'   => $e->getMessage()
+                'error' => $e->getMessage()
             ], 400);
         }
     }
@@ -55,8 +60,8 @@ class ClienteController extends Controller
     public function update(Request $request, Cliente $cliente)
     {
         $request->validate([
-            'nombre_cliente'    => 'sometimes|required|string|max:50',
-            'telefono_cliente'  => 'sometimes|nullable|string|max:50',
+            'nombre_cliente' => 'sometimes|required|string|max:50',
+            'telefono_cliente' => 'sometimes|nullable|string|max:50',
             'direccion_cliente' => 'sometimes|nullable|string|max:50'
         ]);
 
@@ -64,7 +69,7 @@ class ClienteController extends Controller
 
         return response()->json([
             'message' => 'Cliente actualizado correctamente',
-            'data'    => $cliente
+            'data' => $cliente
         ], 200);
     }
 
