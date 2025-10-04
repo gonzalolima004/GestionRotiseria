@@ -23,7 +23,7 @@ Route::apiResource('/detalle_pedidos', DetallePedidoController::class);
 Route::post('/clientes', [ClienteController::class, 'store']);
 Route::put('/clientes/{cliente}', [ClienteController::class, 'update']);
 
-Route::group(['middleware' => ['auth:api']], function () {
+Route::group(['middleware' => ['jwt.auth']], function () {
 
     Route::post('/logout', [AuthController::class, 'logout']);
 
