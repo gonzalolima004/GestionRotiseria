@@ -16,6 +16,7 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
 Route::apiResource('/categorias', CategoriaController::class)->only(['index', 'show']);
+
 Route::apiResource('/productos', ProductoController::class)->only(['index', 'show']);
 
 Route::apiResource('/detalle_pedidos', DetallePedidoController::class);
@@ -35,6 +36,8 @@ Route::group(['middleware' => ['jwt.auth']], function () {
 
     Route::apiResource('/ventas', VentaController::class);
     Route::apiResource('/pedidos', PedidoController::class);
+    Route::put('/pedidos/finalizar', [PedidoController::class, 'finalizarPedido']);
+
 
 
     /* Route::apiResource('/clientes', App\Http\Controllers\ClienteController::class); */

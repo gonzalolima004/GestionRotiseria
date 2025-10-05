@@ -12,8 +12,7 @@ class VentaController extends Controller
      */
     public function index()
     {
-        $ventas = Venta::with('pedido')->get();
-        return response()->json($ventas);
+        return Venta::all();
     }
 
     /**

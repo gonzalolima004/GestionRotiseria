@@ -30,8 +30,7 @@ public function store(Request $request)
         ]);
 
         $detalle = DetallePedido::create($request->all());
-         $detalle->load('pedido', 'producto');
-
+        $detalle->load('pedido', 'producto');
 
         return response()->json($detalle, 201);
     } catch (\Exception $e) {

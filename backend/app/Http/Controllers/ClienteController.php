@@ -12,8 +12,15 @@ class ClienteController extends Controller
      */
     public function index()
     {
-        $clientes = Cliente::with('pedidos')->get();
-        return response()->json($clientes);
+        try {
+            $clientes = Cliente::with('pedidos')->get();
+            return response()->json($clientes, 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'No se pudieron obtener los clientes',
+                'error' => $e->getMessage()
+            ], 404);
+        }
     }
 
     /**
@@ -23,20 +30,23 @@ class ClienteController extends Controller
     {
         try {
             $request->validate([
-                'dni_cliente' => 'required|string|max:20|unique:cliente,dni_cliente',
+                'dni_cliente' => 'required|string|max:9|unique:cliente,dni_cliente',
                 'nombre_cliente' => 'required|string|max:50',
-                'telefono_cliente' => 'nullable|string|max:50',
-                'direccion_cliente' => 'nullable|string|max:50'
+                'telefono_cliente' => 'required|string|max:50',
+                'direccion_cliente' => 'required|string|max:50'
             ]);
 
             $cliente = Cliente::create([
                 'dni_cliente' => $request->dni_cliente,
                 'nombre_cliente' => $request->nombre_cliente,
-                'telefono_cliente' => $request->telefono_cliente ?? '', 
+                'telefono_cliente' => $request->telefono_cliente ?? '',
                 'direccion_cliente' => $request->direccion_cliente ?? ''
             ]);
 
-            return response()->json($cliente, 201);
+            return response()->json([
+                'message' => 'Cliente creado correctamente',
+                'data' => $cliente
+            ], 201);
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Error al crear el cliente',
@@ -50,8 +60,15 @@ class ClienteController extends Controller
      */
     public function show(Cliente $cliente)
     {
-        $cliente->load('pedidos');
-        return response()->json($cliente);
+        try {
+            $cliente->load('pedidos');
+            return response()->json($cliente, 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Cliente no encontrado',
+                'error' => $e->getMessage()
+            ], 404);
+        }
     }
 
     /**
@@ -59,18 +76,25 @@ class ClienteController extends Controller
      */
     public function update(Request $request, Cliente $cliente)
     {
-        $request->validate([
-            'nombre_cliente' => 'sometimes|required|string|max:50',
-            'telefono_cliente' => 'sometimes|nullable|string|max:50',
-            'direccion_cliente' => 'sometimes|nullable|string|max:50'
-        ]);
+        try {
+            $request->validate([
+                'nombre_cliente' => 'sometimes|required|string|max:50',
+                'telefono_cliente' => 'sometimes|nullable|string|max:50',
+                'direccion_cliente' => 'sometimes|nullable|string|max:50'
+            ]);
 
-        $cliente->update($request->all());
+            $cliente->update($request->all());
 
-        return response()->json([
-            'message' => 'Cliente actualizado correctamente',
-            'data' => $cliente
-        ], 200);
+            return response()->json([
+                'message' => 'Cliente actualizado correctamente',
+                'data' => $cliente
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Error al actualizar el cliente',
+                'error' => $e->getMessage()
+            ], 400);
+        }
     }
 
     /**
@@ -78,10 +102,17 @@ class ClienteController extends Controller
      */
     public function destroy(Cliente $cliente)
     {
-        $cliente->delete();
+        try {
+            $cliente->delete();
 
-        return response()->json([
-            'message' => 'Cliente eliminado correctamente'
-        ], 200);
+            return response()->json([
+                'message' => 'Cliente eliminado correctamente'
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Error al eliminar el cliente',
+                'error' => $e->getMessage()
+            ], 400);
+        }
     }
 }
