@@ -8,12 +8,24 @@ use Illuminate\Http\Request;
 class ClienteController extends Controller
 {
     /**
-     * Listar todos los clientes
+     * @OA\Get(
+     *     path="/api/clientes",
+     *     summary="Obtener lista de clientes",
+     *     tags={"Clientes"},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Lista de clientes obtenida correctamente"
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="No se pudieron obtener los clientes"
+     *     )
+     * )
      */
     public function index()
     {
         try {
-            $clientes = Cliente::with('pedidos')->get();
+            $clientes = Cliente::all();
             return response()->json($clientes, 200);
         } catch (\Exception $e) {
             return response()->json([
@@ -24,24 +36,47 @@ class ClienteController extends Controller
     }
 
     /**
-     * Crear un nuevo cliente
+     * @OA\Post(
+     *     path="/api/clientes",
+     *     summary="Crear un nuevo cliente",
+     *     description="Crea un cliente nuevo. Requiere autenticación con token JWT.",
+     *     tags={"Clientes"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"dni_cliente", "nombre_cliente", "telefono_cliente", "direccion_cliente"},
+     *             @OA\Property(property="dni_cliente", type="string", example="12345678"),
+     *             @OA\Property(property="nombre_cliente", type="string", example="Juan Pérez"),
+     *             @OA\Property(property="telefono_cliente", type="string", example="0345-4212345"),
+     *             @OA\Property(property="direccion_cliente", type="string", example="Av. San Martín 123")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Cliente creado correctamente"
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Datos inválidos"
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Error interno"
+     *     )
+     * )
      */
     public function store(Request $request)
     {
         try {
             $request->validate([
-                'dni_cliente' => 'required|string|max:9|unique:cliente,dni_cliente',
-                'nombre_cliente' => 'required|string|max:50',
-                'telefono_cliente' => 'required|string|max:50',
-                'direccion_cliente' => 'required|string|max:50'
+                'dni_cliente' => 'required|string|unique:cliente,dni_cliente',
+                'nombre_cliente' => 'required|string|max:100',
+                'telefono_cliente' => 'required|string|max:20',
+                'direccion_cliente' => 'required|string|max:255',
             ]);
 
-            $cliente = Cliente::create([
-                'dni_cliente' => $request->dni_cliente,
-                'nombre_cliente' => $request->nombre_cliente,
-                'telefono_cliente' => $request->telefono_cliente ?? '',
-                'direccion_cliente' => $request->direccion_cliente ?? ''
-            ]);
+            $cliente = Cliente::create($request->all());
 
             return response()->json([
                 'message' => 'Cliente creado correctamente',
@@ -56,34 +91,99 @@ class ClienteController extends Controller
     }
 
     /**
-     * Mostrar un cliente específico
+     * @OA\Get(
+     *     path="/api/clientes/{dni}",
+     *     summary="Obtener un cliente por DNI",
+     *     tags={"Clientes"},
+     *     @OA\Parameter(
+     *         name="dni",
+     *         in="path",
+     *         required=true,
+     *         description="DNI del cliente",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Cliente obtenido correctamente"
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Cliente no encontrado"
+     *     )
+     * )
      */
-    public function show(Cliente $cliente)
+    public function show($dni)
     {
-        try {
-            $cliente->load('pedidos');
-            return response()->json($cliente, 200);
-        } catch (\Exception $e) {
+        $cliente = Cliente::find($dni);
+
+        if (!$cliente) {
             return response()->json([
                 'message' => 'Cliente no encontrado',
-                'error' => $e->getMessage()
             ], 404);
         }
+
+        return response()->json($cliente, 200);
     }
 
     /**
-     * Actualizar un cliente
+     * @OA\Put(
+     *     path="/api/clientes/{dni}",
+     *     summary="Actualizar un cliente existente",
+     *     description="Actualiza un cliente por DNI. Requiere autenticación con token JWT.",
+     *     tags={"Clientes"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="dni",
+     *         in="path",
+     *         required=true,
+     *         description="DNI del cliente a actualizar",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"nombre_cliente", "telefono_cliente", "direccion_cliente"},
+     *             @OA\Property(property="nombre_cliente", type="string", example="Ana Gómez"),
+     *             @OA\Property(property="telefono_cliente", type="string", example="0345-4212345"),
+     *             @OA\Property(property="direccion_cliente", type="string", example="Calle Falsa 123")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Cliente actualizado correctamente"
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Cliente no encontrado"
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Error al actualizar el cliente"
+     *     )
+     * )
      */
-    public function update(Request $request, Cliente $cliente)
+    public function update(Request $request, $dni)
     {
+        $cliente = Cliente::find($dni);
+
+        if (!$cliente) {
+            return response()->json([
+                'message' => 'Cliente no encontrado'
+            ], 404);
+        }
+
         try {
             $request->validate([
-                'nombre_cliente' => 'sometimes|required|string|max:50',
-                'telefono_cliente' => 'sometimes|nullable|string|max:50',
-                'direccion_cliente' => 'sometimes|nullable|string|max:50'
+                'nombre_cliente' => 'required|string|max:100',
+                'telefono_cliente' => 'required|string|max:20',
+                'direccion_cliente' => 'required|string|max:255',
             ]);
 
-            $cliente->update($request->all());
+            $cliente->update($request->only([
+                'nombre_cliente',
+                'telefono_cliente',
+                'direccion_cliente'
+            ]));
 
             return response()->json([
                 'message' => 'Cliente actualizado correctamente',
@@ -98,10 +198,43 @@ class ClienteController extends Controller
     }
 
     /**
-     * Eliminar un cliente
+     * @OA\Delete(
+     *     path="/api/clientes/{dni}",
+     *     summary="Eliminar un cliente",
+     *     description="Elimina un cliente por DNI. Requiere autenticación con token JWT.",
+     *     tags={"Clientes"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="dni",
+     *         in="path",
+     *         required=true,
+     *         description="DNI del cliente a eliminar",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Cliente eliminado correctamente"
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Cliente no encontrado"
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Error al eliminar el cliente"
+     *     )
+     * )
      */
-    public function destroy(Cliente $cliente)
+    public function destroy($dni)
     {
+        $cliente = Cliente::find($dni);
+
+        if (!$cliente) {
+            return response()->json([
+                'message' => 'Cliente no encontrado'
+            ], 404);
+        }
+
         try {
             $cliente->delete();
 

@@ -370,6 +370,402 @@
                 ]
             }
         },
+        "/api/clientes": {
+            "get": {
+                "tags": [
+                    "Clientes"
+                ],
+                "summary": "Obtener lista de clientes",
+                "operationId": "de55d50d1b708d9e5c63ee3f8fe8f54a",
+                "responses": {
+                    "200": {
+                        "description": "Lista de clientes obtenida correctamente"
+                    },
+                    "404": {
+                        "description": "No se pudieron obtener los clientes"
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Clientes"
+                ],
+                "summary": "Crear un nuevo cliente",
+                "description": "Crea un cliente nuevo. Requiere autenticación con token JWT.",
+                "operationId": "4ac6cdfa8d6c188fa2cb4f3263d4318a",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "dni_cliente",
+                                    "nombre_cliente",
+                                    "telefono_cliente",
+                                    "direccion_cliente"
+                                ],
+                                "properties": {
+                                    "dni_cliente": {
+                                        "type": "string",
+                                        "example": "12345678"
+                                    },
+                                    "nombre_cliente": {
+                                        "type": "string",
+                                        "example": "Juan Pérez"
+                                    },
+                                    "telefono_cliente": {
+                                        "type": "string",
+                                        "example": "0345-4212345"
+                                    },
+                                    "direccion_cliente": {
+                                        "type": "string",
+                                        "example": "Av. San Martín 123"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Cliente creado correctamente"
+                    },
+                    "422": {
+                        "description": "Datos inválidos"
+                    },
+                    "500": {
+                        "description": "Error interno"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/clientes/{dni}": {
+            "get": {
+                "tags": [
+                    "Clientes"
+                ],
+                "summary": "Obtener un cliente por DNI",
+                "operationId": "4c6d39deee5557337a2576991c7e01dd",
+                "parameters": [
+                    {
+                        "name": "dni",
+                        "in": "path",
+                        "description": "DNI del cliente",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Cliente obtenido correctamente"
+                    },
+                    "404": {
+                        "description": "Cliente no encontrado"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Clientes"
+                ],
+                "summary": "Actualizar un cliente existente",
+                "description": "Actualiza un cliente por DNI. Requiere autenticación con token JWT.",
+                "operationId": "d2f093a69be86f80590ad2d05f89258c",
+                "parameters": [
+                    {
+                        "name": "dni",
+                        "in": "path",
+                        "description": "DNI del cliente a actualizar",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "nombre_cliente",
+                                    "telefono_cliente",
+                                    "direccion_cliente"
+                                ],
+                                "properties": {
+                                    "nombre_cliente": {
+                                        "type": "string",
+                                        "example": "Ana Gómez"
+                                    },
+                                    "telefono_cliente": {
+                                        "type": "string",
+                                        "example": "0345-4212345"
+                                    },
+                                    "direccion_cliente": {
+                                        "type": "string",
+                                        "example": "Calle Falsa 123"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Cliente actualizado correctamente"
+                    },
+                    "404": {
+                        "description": "Cliente no encontrado"
+                    },
+                    "400": {
+                        "description": "Error al actualizar el cliente"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Clientes"
+                ],
+                "summary": "Eliminar un cliente",
+                "description": "Elimina un cliente por DNI. Requiere autenticación con token JWT.",
+                "operationId": "8c72fe8895a579f616644ba267683b09",
+                "parameters": [
+                    {
+                        "name": "dni",
+                        "in": "path",
+                        "description": "DNI del cliente a eliminar",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Cliente eliminado correctamente"
+                    },
+                    "404": {
+                        "description": "Cliente no encontrado"
+                    },
+                    "400": {
+                        "description": "Error al eliminar el cliente"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/detalle_pedidos": {
+            "get": {
+                "tags": [
+                    "DetallePedido"
+                ],
+                "summary": "Obtener lista de detalles de pedido",
+                "operationId": "0e676cef785e01da7bdc7e3ba8cd1627",
+                "responses": {
+                    "200": {
+                        "description": "Lista de detalles obtenida correctamente"
+                    },
+                    "404": {
+                        "description": "No se pudieron obtener los detalles"
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "DetallePedido"
+                ],
+                "summary": "Crear un nuevo detalle de pedido",
+                "description": "Crea un detalle de pedido.",
+                "operationId": "a302bee743705fb1413d3ddfda4a2334",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "id_pedido",
+                                    "id_producto",
+                                    "cantidad",
+                                    "subtotal"
+                                ],
+                                "properties": {
+                                    "id_pedido": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "id_producto": {
+                                        "type": "integer",
+                                        "example": 5
+                                    },
+                                    "cantidad": {
+                                        "type": "integer",
+                                        "example": 3
+                                    },
+                                    "subtotal": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 450
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Detalle de pedido creado correctamente"
+                    },
+                    "422": {
+                        "description": "Datos inválidos"
+                    },
+                    "500": {
+                        "description": "Error interno"
+                    }
+                }
+            }
+        },
+        "/api/detalle_pedidos/{id}": {
+            "get": {
+                "tags": [
+                    "DetallePedido"
+                ],
+                "summary": "Obtener un detalle de pedido por ID",
+                "operationId": "f70721b213f56ac4ad5b880d3c28f48f",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del detalle de pedido",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Detalle de pedido obtenido correctamente"
+                    },
+                    "404": {
+                        "description": "Detalle de pedido no encontrado"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "DetallePedido"
+                ],
+                "summary": "Actualizar un detalle de pedido",
+                "description": "Actualiza un detalle de pedido por ID.",
+                "operationId": "ca871ee8a35cdd75a2c206c3fdf05f7e",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del detalle de pedido a actualizar",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "id_pedido",
+                                    "id_producto",
+                                    "cantidad",
+                                    "subtotal"
+                                ],
+                                "properties": {
+                                    "id_pedido": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "id_producto": {
+                                        "type": "integer",
+                                        "example": 5
+                                    },
+                                    "cantidad": {
+                                        "type": "integer",
+                                        "example": 2
+                                    },
+                                    "subtotal": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 300
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Detalle de pedido actualizado correctamente"
+                    },
+                    "404": {
+                        "description": "Detalle de pedido no encontrado"
+                    },
+                    "400": {
+                        "description": "Error al actualizar el detalle"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "DetallePedido"
+                ],
+                "summary": "Eliminar un detalle de pedido",
+                "description": "Elimina un detalle de pedido por ID.",
+                "operationId": "1231a93af17b96aea0e05662af7dd83a",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del detalle de pedido a eliminar",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Detalle de pedido eliminado correctamente"
+                    },
+                    "404": {
+                        "description": "Detalle de pedido no encontrado"
+                    },
+                    "400": {
+                        "description": "Error al eliminar el detalle"
+                    }
+                }
+            }
+        },
         "/api/productos": {
             "get": {
                 "tags": [
@@ -581,6 +977,219 @@
                     }
                 ]
             }
+        },
+        "/api/ventas": {
+            "get": {
+                "tags": [
+                    "Ventas"
+                ],
+                "summary": "Obtener lista de ventas",
+                "description": "Requiere autenticación con token JWT.",
+                "operationId": "59c03fc441794a47b47713cdee979799",
+                "responses": {
+                    "200": {
+                        "description": "Lista de ventas obtenida correctamente"
+                    },
+                    "404": {
+                        "description": "No se pudieron obtener las ventas"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Ventas"
+                ],
+                "summary": "Registrar una nueva venta",
+                "description": "Crea una venta nueva. Requiere autenticación con token JWT.",
+                "operationId": "6aa3f756f5bdb76e61f2ff273ceec24f",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "fecha",
+                                    "monto_venta",
+                                    "id_pedido"
+                                ],
+                                "properties": {
+                                    "fecha": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2025-10-06"
+                                    },
+                                    "monto_venta": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 1500.75
+                                    },
+                                    "id_pedido": {
+                                        "type": "integer",
+                                        "example": 1
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Venta registrada correctamente"
+                    },
+                    "422": {
+                        "description": "Datos inválidos"
+                    },
+                    "500": {
+                        "description": "Error interno"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/ventas/{id}": {
+            "get": {
+                "tags": [
+                    "Ventas"
+                ],
+                "summary": "Obtener una venta por ID",
+                "description": "Requiere autenticación con token JWT.",
+                "operationId": "ecd7b49598d06f96417a7b8e6b527688",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID de la venta",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Venta obtenida correctamente"
+                    },
+                    "404": {
+                        "description": "Venta no encontrada"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Ventas"
+                ],
+                "summary": "Actualizar una venta existente",
+                "description": "Actualiza una venta por ID. Requiere autenticación con token JWT.",
+                "operationId": "08a4ecd4a33bc628fb5e80851388d7b3",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID de la venta a actualizar",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "fecha",
+                                    "monto_venta",
+                                    "id_pedido"
+                                ],
+                                "properties": {
+                                    "fecha": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2025-10-06"
+                                    },
+                                    "monto_venta": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 1800
+                                    },
+                                    "id_pedido": {
+                                        "type": "integer",
+                                        "example": 2
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Venta actualizada correctamente"
+                    },
+                    "404": {
+                        "description": "Venta no encontrada"
+                    },
+                    "400": {
+                        "description": "Error al actualizar la venta"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Ventas"
+                ],
+                "summary": "Eliminar una venta",
+                "description": "Elimina una venta por ID. Requiere autenticación con token JWT.",
+                "operationId": "6f944f5d092875f8f4cdb1d24be08b91",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID de la venta a eliminar",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Venta eliminada correctamente"
+                    },
+                    "404": {
+                        "description": "Venta no encontrada"
+                    },
+                    "400": {
+                        "description": "Error al eliminar la venta"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
         }
     },
     "components": {
@@ -603,8 +1212,20 @@
             "description": "Categorias"
         },
         {
+            "name": "Clientes",
+            "description": "Clientes"
+        },
+        {
+            "name": "DetallePedido",
+            "description": "DetallePedido"
+        },
+        {
             "name": "Productos",
             "description": "Productos"
+        },
+        {
+            "name": "Ventas",
+            "description": "Ventas"
         }
     ]
 }
