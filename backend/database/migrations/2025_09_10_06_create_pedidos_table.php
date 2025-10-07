@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -14,10 +15,11 @@ return new class extends Migration
             $table->dateTime('fecha_hora')->default(DB::raw('CURRENT_TIMESTAMP'));
             $table->decimal('monto_total', 10, 2);
 
-            $table->string('dni_cliente', 20);
-            $table->unsignedBigInteger('id_metodo_pago');
+            $table->string('dni_cliente', 20)->nullable();
+            $table->unsignedBigInteger('id_metodo_pago')->nullable();
             $table->unsignedBigInteger('id_estado_pedido');
-            $table->unsignedBigInteger('id_modalidad_entrega');
+            $table->unsignedBigInteger('id_modalidad_entrega')->nullable();
+
 
             $table->foreign('dni_cliente')->references('dni_cliente')->on('cliente');
             $table->foreign('id_metodo_pago')->references('id_metodo_pago')->on('metodo_pago');
