@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Pedido;
 use Illuminate\Http\Request;
+use App\Services\WhatsAppService;
+use App\Models\Cliente;
 
 class PedidoController extends Controller
 {
@@ -120,7 +122,8 @@ class PedidoController extends Controller
      *             @OA\Property(property="dni_cliente", type="string", example="12345678"),
      *             @OA\Property(property="id_metodo_pago", type="integer", example=1),
      *             @OA\Property(property="id_estado_pedido", type="integer", example=2),
-     *             @OA\Property(property="id_modalidad_entrega", type="integer", example=3)
+     *             @OA\Property(property="id_modalidad_entrega", type="integer", example=3),
+     *             @OA\Property(property="tiempo_estimado", type="string", example="30 minutos")
      *         )
      *     ),
      *     @OA\Response(response=200, description="Pedido actualizado correctamente"),
@@ -128,7 +131,7 @@ class PedidoController extends Controller
      *     @OA\Response(response=400, description="Error al actualizar el pedido")
      * )
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, $id, WhatsAppService $whatsapp)
     {
         $pedido = Pedido::find($id);
 
@@ -137,28 +140,36 @@ class PedidoController extends Controller
         }
 
         try {
-            $request->validate([
-                'fecha_hora' => 'required|date',
-                'monto_total' => 'required|numeric|min:0',
-                'dni_cliente' => 'required|string|exists:cliente,dni_cliente',
-                'id_metodo_pago' => 'required|integer|exists:metodo_pago,id_metodo_pago',
-                'id_estado_pedido' => 'required|integer|exists:estado_pedido,id_estado_pedido',
-                'id_modalidad_entrega' => 'required|integer|exists:modalidad_entrega,id_modalidad_entrega',
+            $validated = $request->validate([
+                'fecha_hora' => 'sometimes|date',
+                'monto_total' => 'sometimes|numeric|min:0',
+                'dni_cliente' => 'sometimes|string|exists:cliente,dni_cliente',
+                'id_metodo_pago' => 'sometimes|integer|exists:metodo_pago,id_metodo_pago',
+                'id_estado_pedido' => 'sometimes|integer|exists:estado_pedido,id_estado_pedido',
+                'id_modalidad_entrega' => 'sometimes|integer|exists:modalidad_entrega,id_modalidad_entrega',
+                'tiempo_estimado' => 'sometimes|string|max:50',
             ]);
 
-            $pedido->update($request->only([
-                'fecha_hora',
-                'monto_total',
-                'dni_cliente',
-                'id_metodo_pago',
-                'id_estado_pedido',
-                'id_modalidad_entrega'
-            ]));
+            $pedido->update(collect($validated)->except('tiempo_estimado')->toArray());
+
+            // Si el pedido fue confirmado (por ejemplo, estado 2), enviar mensaje por WhatsApp
+            if (isset($validated['id_estado_pedido']) && $validated['id_estado_pedido'] == 2) {
+                $cliente = Cliente::where('dni_cliente', $pedido->dni_cliente)->first();
+
+                if ($cliente && $cliente->telefono_cliente) {
+                    $tiempo = $validated['tiempo_estimado'] ?? 'unos minutos';
+                    $mensaje = "¡Hola {$cliente->nombre_cliente}! Tu pedido N°{$pedido->id_pedido} fue CONFIRMADO. Estará listo en {$tiempo} aproximadamente. ¡Muchas gracias!";
+
+                    $response = $whatsapp->enviarMensaje($cliente->telefono_cliente, $mensaje);
+                    \Log::info("Mensaje enviado a WhatsApp:", $response);
+                }
+            }
 
             return response()->json([
                 'message' => 'Pedido actualizado correctamente',
-                'data' => $pedido
+                'pedido' => $pedido
             ], 200);
+
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Error al actualizar el pedido',
