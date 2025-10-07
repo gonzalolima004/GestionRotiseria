@@ -3,135 +3,200 @@
 namespace App\Http\Controllers;
 
 use App\Models\Pedido;
-use App\Models\Cliente;
-use App\Models\DetallePedido;
 use Illuminate\Http\Request;
 
 class PedidoController extends Controller
 {
-    // Listar pedidos
+    /**
+     * @OA\Get(
+     *     path="/api/pedidos",
+     *     summary="Obtener lista de pedidos",
+     *     description="Requiere autenticación con token JWT.",
+     *     tags={"Pedidos"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(response=200, description="Lista de pedidos obtenida correctamente"),
+     *     @OA\Response(response=404, description="No se pudieron obtener los pedidos")
+     * )
+     */
     public function index()
-{
-    return Pedido::with(['detalles', 'cliente', 'metodoPago', 'estado', 'modalidad'])->get();
-}
+    {
+        try {
+            $pedidos = Pedido::with(['cliente', 'metodoPago', 'estado', 'modalidad', 'detalles'])->get();
+            return response()->json($pedidos, 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'No se pudieron obtener los pedidos',
+                'error' => $e->getMessage()
+            ], 404);
+        }
+    }
 
+    /**
+     * @OA\Post(
+     *     path="/api/pedidos",
+     *     summary="Registrar un nuevo pedido",
+     *     description="Crea un pedido nuevo",
+     *     tags={"Pedidos"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"fecha_hora", "monto_total", "dni_cliente", "id_metodo_pago", "id_estado_pedido", "id_modalidad_entrega"},
+     *             @OA\Property(property="fecha_hora", type="string", format="date-time", example="2025-10-06T14:30:00"),
+     *             @OA\Property(property="monto_total", type="number", format="float", example=2500.50),
+     *             @OA\Property(property="dni_cliente", type="string", example="12345678"),
+     *             @OA\Property(property="id_metodo_pago", type="integer", example=1),
+     *             @OA\Property(property="id_estado_pedido", type="integer", example=2),
+     *             @OA\Property(property="id_modalidad_entrega", type="integer", example=3)
+     *         )
+     *     ),
+     *     @OA\Response(response=201, description="Pedido registrado correctamente"),
+     *     @OA\Response(response=422, description="Datos inválidos"),
+     *     @OA\Response(response=500, description="Error interno")
+     * )
+     */
+    public function store(Request $request)
+    {
+        try {
+            $request->validate([
+                'fecha_hora' => 'required|date',
+                'monto_total' => 'required|numeric|min:0',
+                'dni_cliente' => 'required|string|exists:cliente,dni_cliente',
+                'id_metodo_pago' => 'required|integer|exists:metodo_pago,id_metodo_pago',
+                'id_estado_pedido' => 'required|integer|exists:estado_pedido,id_estado_pedido',
+                'id_modalidad_entrega' => 'required|integer|exists:modalidad_entrega,id_modalidad_entrega',
+            ]);
 
-    // Buscar pedido por ID
+            $pedido = Pedido::create($request->all());
+
+            return response()->json([
+                'message' => 'Pedido registrado correctamente',
+                'data' => $pedido
+            ], 201);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Error al registrar el pedido',
+                'error' => $e->getMessage()
+            ], 400);
+        }
+    }
+
+    /**
+     * @OA\Get(
+     *     path="/api/pedidos/{id}",
+     *     summary="Obtener un pedido por ID",
+     *     description="Requiere autenticación con token JWT.",
+     *     tags={"Pedidos"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="id", in="path", required=true, description="ID del pedido", @OA\Schema(type="integer")),
+     *     @OA\Response(response=200, description="Pedido obtenido correctamente"),
+     *     @OA\Response(response=404, description="Pedido no encontrado")
+     * )
+     */
     public function show($id)
     {
-        $pedido = Pedido::with(['cliente', 'metodoPago', 'estado', 'modalidad', 'detalles.producto'])
-            ->find($id);
+        $pedido = Pedido::with(['cliente', 'metodoPago', 'estado', 'modalidad', 'detalles'])->find($id);
 
         if (!$pedido) {
-            return response()->json(['error' => 'Pedido no encontrado'], 404);
+            return response()->json(['message' => 'Pedido no encontrado'], 404);
         }
 
-        return $pedido;
+        return response()->json($pedido, 200);
     }
 
-    public function store(Request $request)
-{
-    try {
-        $pedido = Pedido::create([
-            'fecha_hora' => now(),
-            'monto_total' => 0,
-            'id_estado_pedido' => 1,
-            'dni_cliente' => null,
-            'id_metodo_pago' => 1,
-            'id_modalidad_entrega' => 1,
-        ]);
-
-        return response()->json($pedido, 201);
-    } catch (\Exception $e) {
-        return response()->json(['error' => $e->getMessage()], 500);
-    }
-}
-
-    //Completar campos y actualizar toda la tabla 
-
-    public function finalizarPedido(Request $request)
-{
-    $data = $request->validate([
-        'id_pedido' => 'required|integer',
-        'dni_cliente' => 'required|string',
-        'nombre_cliente' => 'required|string',
-        'telefono_cliente' => 'required|string',
-        'direccion_cliente' => 'required|string',
-        'id_metodo_pago' => 'required|integer',
-        'id_modalidad_entrega' => 'required|integer',
-    ]);
-
-    // Verificar que el pedido exista
-    $pedido = Pedido::find($data['id_pedido']);
-    if (!$pedido) {
-        return response()->json(['error' => 'error de pedido no encontrado dentro de finalizarPedido'], 404);
-    }
-
-    // Crear cliente si no existe
-    Cliente::firstOrCreate(
-        ['dni_cliente' => $data['dni_cliente']],
-        [
-            'nombre_cliente' => $data['nombre_cliente'],
-            'telefono_cliente' => $data['telefono_cliente'],
-            'direccion_cliente' => $data['direccion_cliente'],
-        ]
-    );
-
-    // Calcular el monto total del pedido
-    $monto = DetallePedido::where('id_pedido', $data['id_pedido'])->sum('subtotal');
-
-    // Actualizar el pedido con los datos del cliente y entrega
-    $pedido->update([
-        'dni_cliente' => $data['dni_cliente'],
-        'monto_total' => $monto,
-        'id_metodo_pago' => $data['id_metodo_pago'],
-        'id_modalidad_entrega' => $data['id_modalidad_entrega'],
-        'id_estado_pedido' => 2, // "confirmado"
-    ]);
-
-    // Devolver el pedido completo usando el método show
-    return $this->show($data['id_pedido']);
-}
-
-
-
-    // Actualizar pedido
+    /**
+     * @OA\Put(
+     *     path="/api/pedidos/{id}",
+     *     summary="Actualizar un pedido existente",
+     *     description="Actualiza un pedido por ID. Requiere autenticación con token JWT.",
+     *     tags={"Pedidos"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="id", in="path", required=true, description="ID del pedido a actualizar", @OA\Schema(type="integer")),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"fecha_hora", "monto_total", "dni_cliente", "id_metodo_pago", "id_estado_pedido", "id_modalidad_entrega"},
+     *             @OA\Property(property="fecha_hora", type="string", format="date-time", example="2025-10-06T14:30:00"),
+     *             @OA\Property(property="monto_total", type="number", format="float", example=2500.50),
+     *             @OA\Property(property="dni_cliente", type="string", example="12345678"),
+     *             @OA\Property(property="id_metodo_pago", type="integer", example=1),
+     *             @OA\Property(property="id_estado_pedido", type="integer", example=2),
+     *             @OA\Property(property="id_modalidad_entrega", type="integer", example=3)
+     *         )
+     *     ),
+     *     @OA\Response(response=200, description="Pedido actualizado correctamente"),
+     *     @OA\Response(response=404, description="Pedido no encontrado"),
+     *     @OA\Response(response=400, description="Error al actualizar el pedido")
+     * )
+     */
     public function update(Request $request, $id)
     {
         $pedido = Pedido::find($id);
 
         if (!$pedido) {
-            return response()->json(['error' => 'Pedido no encontrado'], 404);
+            return response()->json(['message' => 'Pedido no encontrado'], 404);
         }
 
-        $request->validate([
-            'fecha_hora' => 'sometimes|date',
-            'monto_total' => 'sometimes|numeric',
-            'dni_cliente' => 'sometimes|string|exists:cliente,dni_cliente',
-            'id_metodo_pago' => 'sometimes|integer|exists:metodo_pago,id_metodo_pago',
-            'id_estado_pedido' => 'sometimes|integer|exists:estado_pedido,id_estado_pedido',
-            'id_modalidad_entrega' => 'sometimes|integer|exists:modalidad_entrega,id_modalidad_entrega',
-        ]);
+        try {
+            $request->validate([
+                'fecha_hora' => 'required|date',
+                'monto_total' => 'required|numeric|min:0',
+                'dni_cliente' => 'required|string|exists:cliente,dni_cliente',
+                'id_metodo_pago' => 'required|integer|exists:metodo_pago,id_metodo_pago',
+                'id_estado_pedido' => 'required|integer|exists:estado_pedido,id_estado_pedido',
+                'id_modalidad_entrega' => 'required|integer|exists:modalidad_entrega,id_modalidad_entrega',
+            ]);
 
-        $pedido->update($request->all());
+            $pedido->update($request->only([
+                'fecha_hora',
+                'monto_total',
+                'dni_cliente',
+                'id_metodo_pago',
+                'id_estado_pedido',
+                'id_modalidad_entrega'
+            ]));
 
-        return response()->json([
-            'message' => 'Pedido actualizado correctamente',
-            'pedido' => $pedido
-        ]);
+            return response()->json([
+                'message' => 'Pedido actualizado correctamente',
+                'data' => $pedido
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Error al actualizar el pedido',
+                'error' => $e->getMessage()
+            ], 400);
+        }
     }
 
-    // Eliminar pedido
+    /**
+     * @OA\Delete(
+     *     path="/api/pedidos/{id}",
+     *     summary="Eliminar un pedido",
+     *     description="Elimina un pedido por ID. Requiere autenticación con token JWT.",
+     *     tags={"Pedidos"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="id", in="path", required=true, description="ID del pedido a eliminar", @OA\Schema(type="integer")),
+     *     @OA\Response(response=200, description="Pedido eliminado correctamente"),
+     *     @OA\Response(response=404, description="Pedido no encontrado"),
+     *     @OA\Response(response=400, description="Error al eliminar el pedido")
+     * )
+     */
     public function destroy($id)
     {
         $pedido = Pedido::find($id);
 
         if (!$pedido) {
-            return response()->json(['error' => 'Pedido no encontrado'], 404);
+            return response()->json(['message' => 'Pedido no encontrado'], 404);
         }
 
-        $pedido->delete();
+        try {
+            $pedido->delete();
 
-        return response()->json(['message' => 'Pedido eliminado']);
+            return response()->json(['message' => 'Pedido eliminado correctamente'], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Error al eliminar el pedido',
+                'error' => $e->getMessage()
+            ], 400);
+        }
     }
 }

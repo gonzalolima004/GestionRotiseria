@@ -766,6 +766,244 @@
                 }
             }
         },
+        "/api/pedidos": {
+            "get": {
+                "tags": [
+                    "Pedidos"
+                ],
+                "summary": "Obtener lista de pedidos",
+                "description": "Requiere autenticación con token JWT.",
+                "operationId": "9368500233e75a120cb606e08d7a06e4",
+                "responses": {
+                    "200": {
+                        "description": "Lista de pedidos obtenida correctamente"
+                    },
+                    "404": {
+                        "description": "No se pudieron obtener los pedidos"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Pedidos"
+                ],
+                "summary": "Registrar un nuevo pedido",
+                "description": "Crea un pedido nuevo",
+                "operationId": "acf9c44ffbceb280fd290ecbb5f5f3f3",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "fecha_hora",
+                                    "monto_total",
+                                    "dni_cliente",
+                                    "id_metodo_pago",
+                                    "id_estado_pedido",
+                                    "id_modalidad_entrega"
+                                ],
+                                "properties": {
+                                    "fecha_hora": {
+                                        "type": "string",
+                                        "format": "date-time",
+                                        "example": "2025-10-06T14:30:00"
+                                    },
+                                    "monto_total": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 2500.5
+                                    },
+                                    "dni_cliente": {
+                                        "type": "string",
+                                        "example": "12345678"
+                                    },
+                                    "id_metodo_pago": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "id_estado_pedido": {
+                                        "type": "integer",
+                                        "example": 2
+                                    },
+                                    "id_modalidad_entrega": {
+                                        "type": "integer",
+                                        "example": 3
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Pedido registrado correctamente"
+                    },
+                    "422": {
+                        "description": "Datos inválidos"
+                    },
+                    "500": {
+                        "description": "Error interno"
+                    }
+                }
+            }
+        },
+        "/api/pedidos/{id}": {
+            "get": {
+                "tags": [
+                    "Pedidos"
+                ],
+                "summary": "Obtener un pedido por ID",
+                "description": "Requiere autenticación con token JWT.",
+                "operationId": "69873c1dd29645d07e53a4c4db9057e9",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del pedido",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Pedido obtenido correctamente"
+                    },
+                    "404": {
+                        "description": "Pedido no encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Pedidos"
+                ],
+                "summary": "Actualizar un pedido existente",
+                "description": "Actualiza un pedido por ID. Requiere autenticación con token JWT.",
+                "operationId": "3da8de6967b1e89d1d5a0cf5988c04e5",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del pedido a actualizar",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "fecha_hora",
+                                    "monto_total",
+                                    "dni_cliente",
+                                    "id_metodo_pago",
+                                    "id_estado_pedido",
+                                    "id_modalidad_entrega"
+                                ],
+                                "properties": {
+                                    "fecha_hora": {
+                                        "type": "string",
+                                        "format": "date-time",
+                                        "example": "2025-10-06T14:30:00"
+                                    },
+                                    "monto_total": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 2500.5
+                                    },
+                                    "dni_cliente": {
+                                        "type": "string",
+                                        "example": "12345678"
+                                    },
+                                    "id_metodo_pago": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "id_estado_pedido": {
+                                        "type": "integer",
+                                        "example": 2
+                                    },
+                                    "id_modalidad_entrega": {
+                                        "type": "integer",
+                                        "example": 3
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Pedido actualizado correctamente"
+                    },
+                    "404": {
+                        "description": "Pedido no encontrado"
+                    },
+                    "400": {
+                        "description": "Error al actualizar el pedido"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Pedidos"
+                ],
+                "summary": "Eliminar un pedido",
+                "description": "Elimina un pedido por ID. Requiere autenticación con token JWT.",
+                "operationId": "c0cc39e3f79740c3fe58d2268a321d0b",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del pedido a eliminar",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Pedido eliminado correctamente"
+                    },
+                    "404": {
+                        "description": "Pedido no encontrado"
+                    },
+                    "400": {
+                        "description": "Error al eliminar el pedido"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/productos": {
             "get": {
                 "tags": [
@@ -1218,6 +1456,10 @@
         {
             "name": "DetallePedido",
             "description": "DetallePedido"
+        },
+        {
+            "name": "Pedidos",
+            "description": "Pedidos"
         },
         {
             "name": "Productos",
