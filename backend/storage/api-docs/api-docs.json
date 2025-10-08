@@ -384,7 +384,12 @@
                     "404": {
                         "description": "No se pudieron obtener los clientes"
                     }
-                }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
             },
             "post": {
                 "tags": [
@@ -944,6 +949,10 @@
                                     "id_modalidad_entrega": {
                                         "type": "integer",
                                         "example": 3
+                                    },
+                                    "tiempo_estimado": {
+                                        "type": "string",
+                                        "example": "30 minutos"
                                     }
                                 },
                                 "type": "object"

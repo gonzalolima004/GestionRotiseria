@@ -12,6 +12,7 @@ class ClienteController extends Controller
      *     path="/api/clientes",
      *     summary="Obtener lista de clientes",
      *     tags={"Clientes"},
+     *      security={{"bearerAuth":{}}},
      *     @OA\Response(
      *         response=200,
      *         description="Lista de clientes obtenida correctamente"
