@@ -73,7 +73,7 @@ class ProductoController extends Controller
 
             return response()->json([
                 'message' => 'Producto creado correctamente',
-                'data' => $producto
+                'producto' => $producto
             ], 201);
         } catch (\Exception $e) {
             return response()->json([
@@ -107,7 +107,10 @@ class ProductoController extends Controller
             return response()->json(['message' => 'Producto no encontrado'], 404);
         }
 
-        return response()->json($producto, 200);
+        return response()->json([
+                'message' => 'Producto obtenido correctamente',
+                'producto' => $producto
+            ], 200);
     }
 
     /**
@@ -154,7 +157,7 @@ class ProductoController extends Controller
 
             return response()->json([
                 'message' => 'Producto actualizado correctamente',
-                'data' => $producto
+                'producto' => $producto
             ], 200);
         } catch (\Exception $e) {
             return response()->json([
@@ -197,7 +200,8 @@ class ProductoController extends Controller
         $producto->delete();
 
         return response()->json([
-            'message' => 'Producto eliminado correctamente'
+            'message' => 'Producto eliminado correctamente',
+            'producto' => $id
         ], 200);
     } catch (\Exception $e) {
         return response()->json([

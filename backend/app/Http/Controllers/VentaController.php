@@ -80,7 +80,7 @@ class VentaController extends Controller
 
             return response()->json([
                 'message' => 'Venta registrada correctamente',
-                'data' => $venta
+                'venta' => $venta
             ], 201);
         } catch (\Exception $e) {
             return response()->json([
@@ -124,7 +124,10 @@ class VentaController extends Controller
             ], 404);
         }
 
-        return response()->json($venta, 200);
+        return response()->json([
+                'message' => 'Venta obtenida correctamente',
+                'venta' => $venta
+            ], 200);
     }
 
     /**
@@ -189,7 +192,7 @@ class VentaController extends Controller
 
             return response()->json([
                 'message' => 'Venta actualizada correctamente',
-                'data' => $venta
+                'venta' => $venta
             ], 200);
         } catch (\Exception $e) {
             return response()->json([
@@ -241,7 +244,8 @@ class VentaController extends Controller
             $venta->delete();
 
             return response()->json([
-                'message' => 'Venta eliminada correctamente'
+                'message' => 'Venta eliminada correctamente',
+                'venta' => $id
             ], 200);
         } catch (\Exception $e) {
             return response()->json([

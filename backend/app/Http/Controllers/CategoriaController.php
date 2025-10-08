@@ -84,8 +84,9 @@ class CategoriaController extends Controller
 
             return response()->json([
                 'message' => 'Categoria creada correctamente',
-                'data' => $categoria
+                'categoria' => $categoria
             ], 201);
+
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Error al crear la categoria',
@@ -122,11 +123,14 @@ class CategoriaController extends Controller
 
         if (!$categoria) {
             return response()->json([
-                'message' => 'Categoria no encontrada',
+                'message' => 'Categoría no encontrada',
             ], 404);
         }
 
-        return response()->json($categoria, 200);
+        return response()->json([
+                'message' => 'Categoría obtenida correctamente',
+                'categoria' => $categoria
+            ], 200);
     }
 
     /**
@@ -185,8 +189,9 @@ class CategoriaController extends Controller
 
             return response()->json([
                 'message' => 'Categoria actualizada correctamente',
-                'data' => $categoria
+                'categoria' => $categoria
             ], 200);
+
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Error al actualizar la categoria',
@@ -252,8 +257,10 @@ class CategoriaController extends Controller
         $categoria->delete();
 
         return response()->json([
-            'message' => 'Categoria eliminada correctamente'
+            'message' => 'Categoria eliminada correctamente',
+            'categoria' => $id
         ], 200);
+        
     } catch (\Exception $e) {
         return response()->json([
             'message' => 'Error al eliminar la categoria',

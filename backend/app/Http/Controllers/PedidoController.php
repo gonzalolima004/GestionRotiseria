@@ -48,7 +48,7 @@ class PedidoController extends Controller
      *             @OA\Property(property="dni_cliente", type="string", example="12345678"),
      *             @OA\Property(property="id_metodo_pago", type="integer", example=1),
      *             @OA\Property(property="id_estado_pedido", type="integer", example=2),
-     *             @OA\Property(property="id_modalidad_entrega", type="integer", example=3)
+     *             @OA\Property(property="id_modalidad_entrega", type="integer", example=2)
      *         )
      *     ),
      *     @OA\Response(response=201, description="Pedido registrado correctamente"),
@@ -72,8 +72,9 @@ class PedidoController extends Controller
 
             return response()->json([
                 'message' => 'Pedido registrado correctamente',
-                'data' => $pedido
+                'pedido' => $pedido
             ], 201);
+
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Error al registrar el pedido',
@@ -102,7 +103,10 @@ class PedidoController extends Controller
             return response()->json(['message' => 'Pedido no encontrado'], 404);
         }
 
-        return response()->json($pedido, 200);
+        return response()->json([
+                'message' => 'Pedido obtenido correctamente',
+                'pedido' => $pedido
+            ], 200);
     }
 
     /**
@@ -111,7 +115,6 @@ class PedidoController extends Controller
      *     summary="Actualizar un pedido existente",
      *     description="Actualiza un pedido por ID. Requiere autenticación con token JWT.",
      *     tags={"Pedidos"},
-     *     security={{"bearerAuth":{}}},
      *     @OA\Parameter(name="id", in="path", required=true, description="ID del pedido a actualizar", @OA\Schema(type="integer")),
      *     @OA\RequestBody(
      *         required=true,
@@ -122,7 +125,7 @@ class PedidoController extends Controller
      *             @OA\Property(property="dni_cliente", type="string", example="12345678"),
      *             @OA\Property(property="id_metodo_pago", type="integer", example=1),
      *             @OA\Property(property="id_estado_pedido", type="integer", example=2),
-     *             @OA\Property(property="id_modalidad_entrega", type="integer", example=3),
+     *             @OA\Property(property="id_modalidad_entrega", type="integer", example=2),
      *             @OA\Property(property="tiempo_estimado", type="string", example="30 minutos")
      *         )
      *     ),
@@ -152,7 +155,6 @@ class PedidoController extends Controller
 
             $pedido->update(collect($validated)->except('tiempo_estimado')->toArray());
 
-            // Si el pedido fue confirmado (por ejemplo, estado 2), enviar mensaje por WhatsApp
             if (isset($validated['id_estado_pedido']) && $validated['id_estado_pedido'] == 2) {
                 $cliente = Cliente::where('dni_cliente', $pedido->dni_cliente)->first();
 
@@ -202,7 +204,11 @@ class PedidoController extends Controller
         try {
             $pedido->delete();
 
-            return response()->json(['message' => 'Pedido eliminado correctamente'], 200);
+            return response()->json([
+                'message' => 'Pedido eliminado correctamente (si posee detalles_pedido, estos también se eliminan)',
+                'pedido' => $id
+            ], 200);
+
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Error al eliminar el pedido',

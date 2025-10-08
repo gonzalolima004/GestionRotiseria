@@ -45,7 +45,7 @@ class DetallePedidoController extends Controller
      *         required=true,
      *         @OA\JsonContent(
      *             required={"id_pedido", "id_producto", "cantidad", "subtotal"},
-     *             @OA\Property(property="id_pedido", type="integer", example=1),
+     *             @OA\Property(property="id_pedido", type="integer", example=4),
      *             @OA\Property(property="id_producto", type="integer", example=5),
      *             @OA\Property(property="cantidad", type="integer", example=3),
      *             @OA\Property(property="subtotal", type="number", format="float", example=450.00)
@@ -79,7 +79,7 @@ class DetallePedidoController extends Controller
 
             return response()->json([
                 'message' => 'Detalle de pedido creado correctamente',
-                'data' => $detalle
+                'detalle' => $detalle
             ], 201);
         } catch (\Exception $e) {
             return response()->json([
@@ -121,7 +121,10 @@ class DetallePedidoController extends Controller
             ], 404);
         }
 
-        return response()->json($detalle, 200);
+        return response()->json([
+                'message' => 'Detalle de pedido obtenido correctamente',
+                'detalle' => $detalle
+            ], 200);
     }
 
     /**
@@ -188,8 +191,9 @@ class DetallePedidoController extends Controller
 
             return response()->json([
                 'message' => 'Detalle de pedido actualizado correctamente',
-                'data' => $detalle
+                'detalle' => $detalle
             ], 200);
+
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Error al actualizar el detalle de pedido',
@@ -239,8 +243,10 @@ class DetallePedidoController extends Controller
             $detalle->delete();
 
             return response()->json([
-                'message' => 'Detalle de pedido eliminado correctamente'
+                'message' => 'Detalle de pedido eliminado correctamente',
+                'detalle' => $id
             ], 200);
+
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Error al eliminar el detalle de pedido',

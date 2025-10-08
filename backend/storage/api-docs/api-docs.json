@@ -475,7 +475,12 @@
                     "404": {
                         "description": "Cliente no encontrado"
                     }
-                }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
             },
             "put": {
                 "tags": [
@@ -614,7 +619,7 @@
                                 "properties": {
                                     "id_pedido": {
                                         "type": "integer",
-                                        "example": 1
+                                        "example": 4
                                     },
                                     "id_producto": {
                                         "type": "integer",
@@ -838,7 +843,7 @@
                                     },
                                     "id_modalidad_entrega": {
                                         "type": "integer",
-                                        "example": 3
+                                        "example": 2
                                     }
                                 },
                                 "type": "object"
@@ -948,7 +953,7 @@
                                     },
                                     "id_modalidad_entrega": {
                                         "type": "integer",
-                                        "example": 3
+                                        "example": 2
                                     },
                                     "tiempo_estimado": {
                                         "type": "string",
@@ -970,12 +975,7 @@
                     "400": {
                         "description": "Error al actualizar el pedido"
                     }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
+                }
             },
             "delete": {
                 "tags": [

@@ -81,8 +81,9 @@ class ClienteController extends Controller
 
             return response()->json([
                 'message' => 'Cliente creado correctamente',
-                'data' => $cliente
+                'cliente' => $cliente
             ], 201);
+
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Error al crear el cliente',
@@ -96,6 +97,7 @@ class ClienteController extends Controller
      *     path="/api/clientes/{dni}",
      *     summary="Obtener un cliente por DNI",
      *     tags={"Clientes"},
+     *     security={{"bearerAuth":{}}},
      *     @OA\Parameter(
      *         name="dni",
      *         in="path",
@@ -123,7 +125,10 @@ class ClienteController extends Controller
             ], 404);
         }
 
-        return response()->json($cliente, 200);
+        return response()->json([
+                'message' => 'Cliente obtenido correctamente',
+                'cliente' => $cliente
+            ], 200);
     }
 
     /**
@@ -188,8 +193,9 @@ class ClienteController extends Controller
 
             return response()->json([
                 'message' => 'Cliente actualizado correctamente',
-                'data' => $cliente
+                'cliente' => $cliente
             ], 200);
+
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Error al actualizar el cliente',
@@ -240,8 +246,10 @@ class ClienteController extends Controller
             $cliente->delete();
 
             return response()->json([
-                'message' => 'Cliente eliminado correctamente'
+                'message' => 'Cliente eliminado correctamente',
+                'dni' => $dni
             ], 200);
+            
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Error al eliminar el cliente',
