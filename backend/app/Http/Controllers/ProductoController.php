@@ -79,7 +79,7 @@ class ProductoController extends Controller
             return response()->json([
                 'message' => 'Error al crear el producto',
                 'error' => $e->getMessage()
-            ], 500);
+            ], 400);
         }
     }
 

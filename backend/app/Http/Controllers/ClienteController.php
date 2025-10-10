@@ -70,8 +70,13 @@ class ClienteController extends Controller
     public function store(Request $request)
     {
         try {
-            $request->validate([
-                'dni_cliente' => 'required|string|unique:cliente,dni_cliente',
+             $request->validate([
+                'dni_cliente' => [
+                    'required',
+                    'digits:8',        
+                    'numeric',         
+                    'unique:cliente,dni_cliente'
+                ],
                 'nombre_cliente' => 'required|string|max:100',
                 'telefono_cliente' => 'required|string|max:20',
                 'direccion_cliente' => 'required|string|max:255',
