@@ -11,35 +11,25 @@ use App\Http\Controllers\PedidoController;
 use App\Http\Controllers\ProductoController;
 use App\Http\Controllers\VentaController;
 
-
+// Rutas públicas
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
 Route::apiResource('/categorias', CategoriaController::class)->only(['index', 'show']);
 Route::apiResource('/productos', ProductoController::class)->only(['index', 'show']);
-
 Route::apiResource('/detalle_pedidos', DetallePedidoController::class);
 
-Route::post('/clientes', [ClienteController::class, 'store']);
-Route::put('/clientes/{cliente}', [ClienteController::class, 'update']);
+Route::post('/pedidos', [PedidoController::class, 'store']);
+Route::put('/pedidos/{pedido}', [PedidoController::class, 'update']);
 
+// Rutas protegidas
 Route::group(['middleware' => ['jwt.auth']], function () {
-
     Route::post('/logout', [AuthController::class, 'logout']);
-
-    Route::apiResource('/clientes', ClienteController::class)->only(['index', 'show', 'destroy']);
-
-    Route::apiResource('/productos', ProductoController::class)->except(['index', 'show']);
-
+    
     Route::apiResource('/categorias', CategoriaController::class)->except(['index', 'show']);
-
+    Route::apiResource('/productos', ProductoController::class)->except(['index', 'show']);
+    Route::apiResource('/pedidos', PedidoController::class)->except(['store', 'update']);
+    Route::apiResource('/clientes', ClienteController::class);
     Route::apiResource('/ventas', VentaController::class);
-    Route::apiResource('/pedidos', PedidoController::class);
 
-
-    /* Route::apiResource('/clientes', App\Http\Controllers\ClienteController::class); */
-    /* Route::apiResource('/categorias', App\Http\Controllers\CategoriaController::class); */
-    /* Route::apiResource('/productos', App\Http\Controllers\ProductoController::class); */
-    /* Route::apiResource('/ventas', App\Http\Controllers\VentaController::class);
-    Route::apiResource('/pedidos', App\Http\Controllers\PedidoController::class);*/
 });
