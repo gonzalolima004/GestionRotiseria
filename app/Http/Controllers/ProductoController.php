@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Producto;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ProductoController extends Controller
 {
@@ -51,6 +52,7 @@ class ProductoController extends Controller
      *             @OA\Property(property="precio_producto", type="number", format="float", example=150.50),
      *             @OA\Property(property="disponible", type="boolean", example=true),
      *             @OA\Property(property="id_categoria", type="integer", example=1)
+     *             @OA\Property(property="imagen", type="file", description="Imagen del producto")
      *         )
      *     ),
      *     @OA\Response(response=201, description="Producto creado correctamente"),
@@ -59,29 +61,42 @@ class ProductoController extends Controller
      * )
      */
     public function store(Request $request)
-    {
-        try {
-            $request->validate([
-                'nombre_producto' => 'required|string|max:100|unique:producto,nombre_producto',
-                'descripcion_producto' => 'nullable|string',
-                'precio_producto' => 'required|numeric|min:0',
-                'disponible' => 'boolean',
-                'id_categoria' => 'required|integer|exists:categoria,id_categoria',
-            ]);
+{
+    try {
+        $request->validate([
+            'nombre_producto' => 'required|string|max:100|unique:producto,nombre_producto',
+            'descripcion_producto' => 'nullable|string',
+            'precio_producto' => 'required|numeric|min:0',
+            'disponible' => 'boolean',
+            'id_categoria' => 'required|integer|exists:categoria,id_categoria',
+            'imagen' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+        ]);
 
-            $producto = Producto::create($request->all());
+        $data = $request->all();
 
-            return response()->json([
-                'message' => 'Producto creado correctamente',
-                'producto' => $producto
-            ], 201);
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Error al crear el producto',
-                'error' => $e->getMessage()
-            ], 400);
+        // ✅ convertir booleano disponible a entero (1 o 0)
+        $data['disponible'] = filter_var($request->input('disponible'), FILTER_VALIDATE_BOOLEAN) ? 1 : 0;
+
+        // ✅ Guardar imagen en storage/app/public/productos
+        if ($request->hasFile('imagen')) {
+            $path = $request->file('imagen')->store('productos', 'public');
+            $data['imagen'] = $path;
         }
+
+        $producto = Producto::create($data);
+
+        return response()->json([
+            'message' => 'Producto creado correctamente',
+            'producto' => $producto
+        ], 201);
+    } catch (\Exception $e) {
+        return response()->json([
+            'message' => 'Error al crear el producto',
+            'error' => $e->getMessage()
+        ], 400);
     }
+}
+
 
     /**
      * @OA\Get(
@@ -135,6 +150,7 @@ class ProductoController extends Controller
      *             @OA\Property(property="precio_producto", type="number", format="float", example=140.00),
      *             @OA\Property(property="disponible", type="boolean", example=false),
      *             @OA\Property(property="id_categoria", type="integer", example=2)
+     *             @OA\Property(property="imagen", type="file", description="Imagen del producto")
      *         )
      *     ),
      *     @OA\Response(response=200, description="Producto actualizado correctamente"),
@@ -142,18 +158,34 @@ class ProductoController extends Controller
      *     @OA\Response(response=500, description="Error interno")
      * )
      */
-    public function update(Request $request, Producto $producto)
+    public function update(Request $request, $id)
     {
         try {
+            $producto = Producto::find($id);
+
+            if (!$producto) {
+                return response()->json(['message' => 'Producto no encontrado'], 404);
+            }
+
             $request->validate([
                 'nombre_producto' => 'string|max:100|unique:producto,nombre_producto,' . $producto->id_producto . ',id_producto',
                 'descripcion_producto' => 'nullable|string',
                 'precio_producto' => 'numeric|min:0',
                 'disponible' => 'boolean',
                 'id_categoria' => 'integer|exists:categoria,id_categoria',
+                'imagen' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             ]);
 
-            $producto->update($request->all());
+            $data = $request->except('imagen');
+
+            if ($request->hasFile('imagen')) {
+                if ($producto->imagen) {
+                    Storage::disk('public')->delete($producto->imagen);
+                }
+                $data['imagen'] = $request->file('imagen')->store('productos', 'public');
+            }
+
+            $producto->update($data);
 
             return response()->json([
                 'message' => 'Producto actualizado correctamente',
@@ -187,28 +219,27 @@ class ProductoController extends Controller
      * )
      */
     public function destroy($id)
-{
-    $producto = Producto::find($id);
+    {
+        try {
+            $producto = Producto::find($id);
 
-    if (!$producto) {
-        return response()->json([
-            'message' => 'Producto no encontrado'
-        ], 404);
+            if (!$producto) {
+                return response()->json(['message' => 'Producto no encontrado'], 404);
+            }
+
+            if ($producto->imagen) {
+                Storage::disk('public')->delete($producto->imagen);
+            }
+
+            $producto->delete();
+
+            return response()->json(['message' => 'Producto eliminado correctamente'], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Error al eliminar el producto',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
-
-    try {
-        $producto->delete();
-
-        return response()->json([
-            'message' => 'Producto eliminado correctamente',
-            'producto' => $id
-        ], 200);
-    } catch (\Exception $e) {
-        return response()->json([
-            'message' => 'Error al eliminar el producto',
-            'error' => $e->getMessage()
-        ], 500);
-    }
-}
 
 }
