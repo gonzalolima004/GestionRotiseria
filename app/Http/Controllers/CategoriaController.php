@@ -47,6 +47,8 @@ class CategoriaController extends Controller
      * @OA\JsonContent(
      * required={"nombre_categoria"},
      * @OA\Property(property="nombre_categoria", type="string", maxLength=50, example="Bebidas")
+     * @OA\Property(property="imagen", type="file", description="Imagen del producto")
+     * 
      * )
      * ),
      * @OA\Response(
@@ -73,27 +75,28 @@ class CategoriaController extends Controller
 
     public function store(Request $request)
     {
-        try {
-            $request->validate([
-                'nombre_categoria' => 'required|string|max:50|unique:categoria,nombre_categoria',
-            ]);
+        $request->validate([
+            'nombre_categoria' => 'required|string',
+            'imagen' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+        ]);
 
-            $categoria = Categoria::create([
-                'nombre_categoria' => $request->nombre_categoria,
-            ]);
+        $imagenPath = null;
 
-            return response()->json([
-                'message' => 'Categoria creada correctamente',
-                'categoria' => $categoria
-            ], 201);
-
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Error al crear la categoria',
-                'error' => $e->getMessage()
-            ], 400);
+        if ($request->hasFile('imagen')) {
+            $imagenPath = $request->file('imagen')->store('categorias', 'public');
         }
+
+        $categoria = Categoria::create([
+            'nombre_categoria' => $request->nombre_categoria,
+            'imagen' => $imagenPath,
+        ]);
+
+        return response()->json([
+            'message' => 'Categoría creada correctamente',
+            'categoria' => $categoria
+        ]);
     }
+
 
     /**
      * @OA\Get(
@@ -128,9 +131,9 @@ class CategoriaController extends Controller
         }
 
         return response()->json([
-                'message' => 'Categoría obtenida correctamente',
-                'categoria' => $categoria
-            ], 200);
+            'message' => 'Categoría obtenida correctamente',
+            'categoria' => $categoria
+        ], 200);
     }
 
     /**
@@ -152,6 +155,8 @@ class CategoriaController extends Controller
      *         @OA\JsonContent(
      *             required={"nombre_categoria"},
      *             @OA\Property(property="nombre_categoria", type="string", maxLength=255, example="Snacks")
+     *             @OA\Property(property="imagen", type="file", description="Imagen del producto")
+     *             
      *         )
      *     ),
      *     @OA\Response(
@@ -176,29 +181,24 @@ class CategoriaController extends Controller
      * )
      */
 
-    public function update(Request $request, Categoria $categoria)
+    public function update(Request $request, $id)
     {
-        try {
-            $request->validate([
-                'nombre_categoria' => 'required|string|max:255|unique:categoria,nombre_categoria,' . $categoria->id_categoria . ',id_categoria',
-            ]);
+        $categoria = Categoria::findOrFail($id);
 
-            $categoria->update([
-                'nombre_categoria' => $request->nombre_categoria,
-            ]);
-
-            return response()->json([
-                'message' => 'Categoria actualizada correctamente',
-                'categoria' => $categoria
-            ], 200);
-
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Error al actualizar la categoria',
-                'error' => $e->getMessage()
-            ], 400);
+        if ($request->hasFile('imagen')) {
+            $imagenPath = $request->file('imagen')->store('categorias', 'public');
+            $categoria->imagen = $imagenPath;
         }
+
+        $categoria->nombre_categoria = $request->nombre_categoria;
+        $categoria->save();
+
+        return response()->json([
+            'message' => 'Categoría actualizada correctamente',
+            'categoria' => $categoria
+        ]);
     }
+
 
 
     /**
@@ -244,30 +244,30 @@ class CategoriaController extends Controller
      * )
      */
     public function destroy($id)
-{
-    $categoria = Categoria::find($id);
+    {
+        $categoria = Categoria::find($id);
 
-    if (!$categoria) {
-        return response()->json([
-            'message' => 'Categoria no encontrada'
-        ], 404);
+        if (!$categoria) {
+            return response()->json([
+                'message' => 'Categoria no encontrada'
+            ], 404);
+        }
+
+        try {
+            $categoria->delete();
+
+            return response()->json([
+                'message' => 'Categoria eliminada correctamente',
+                'categoria' => $id
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Error al eliminar la categoria',
+                'error' => $e->getMessage()
+            ], 400);
+        }
     }
-
-    try {
-        $categoria->delete();
-
-        return response()->json([
-            'message' => 'Categoria eliminada correctamente',
-            'categoria' => $id
-        ], 200);
-        
-    } catch (\Exception $e) {
-        return response()->json([
-            'message' => 'Error al eliminar la categoria',
-            'error' => $e->getMessage()
-        ], 400);
-    }
-}
 
 
 }

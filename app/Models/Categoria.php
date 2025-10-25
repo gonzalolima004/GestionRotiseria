@@ -10,10 +10,19 @@ class Categoria extends Model
     protected $primaryKey = 'id_categoria';
     public $timestamps = false;
 
-    protected $fillable = ['nombre_categoria'];
+    protected $fillable = ['nombre_categoria', 'imagen'];
+    protected $appends = ['imagen_url'];
+
+    public function getImagenUrlAttribute()
+    {
+        return $this->imagen
+            ? asset('storage/' . $this->imagen)
+            : null;
+    }
 
     public function productos()
     {
         return $this->hasMany(Producto::class, 'id_categoria', 'id_categoria');
     }
 }
+
