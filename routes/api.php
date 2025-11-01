@@ -21,6 +21,7 @@ Route::apiResource('/detalle_pedidos', DetallePedidoController::class);
 
 Route::post('/pedidos', [PedidoController::class, 'store']);
 Route::put('/pedidos/{pedido}', [PedidoController::class, 'update']);
+Route::apiResource('/clientes', ClienteController::class);
 
 // Rutas protegidas
 Route::group(['middleware' => ['jwt.auth']], function () {
@@ -29,7 +30,6 @@ Route::group(['middleware' => ['jwt.auth']], function () {
     Route::apiResource('/categorias', CategoriaController::class)->except(['index', 'show']);
     Route::apiResource('/productos', ProductoController::class)->except(['index', 'show']);
     Route::apiResource('/pedidos', PedidoController::class)->except(['store', 'update']);
-    Route::apiResource('/clientes', ClienteController::class);
     Route::apiResource('/ventas', VentaController::class);
 
 });

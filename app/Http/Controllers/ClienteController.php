@@ -79,7 +79,7 @@ class ClienteController extends Controller
                 ],
                 'nombre_cliente' => 'required|string|max:100',
                 'telefono_cliente' => 'required|string|max:20',
-                'direccion_cliente' => 'required|string|max:255',
+                'direccion_cliente' => 'nullable|string|max:255',
             ]);
 
             $cliente = Cliente::create($request->all());

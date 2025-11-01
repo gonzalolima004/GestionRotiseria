@@ -15,7 +15,7 @@ return new class extends Migration
             $table->string('dni_cliente', 20)->primary();
             $table->string('nombre_cliente');
             $table->string('telefono_cliente');
-            $table->string('direccion_cliente');
+            $table->string('direccion_cliente')->nullable();
         });
     }
 
