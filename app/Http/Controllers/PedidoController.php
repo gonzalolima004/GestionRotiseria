@@ -20,18 +20,58 @@ class PedidoController extends Controller
      *     @OA\Response(response=404, description="No se pudieron obtener los pedidos")
      * )
      */
-    public function index()
-    {
-        try {
-            $pedidos = Pedido::with(['cliente', 'metodoPago', 'estado', 'modalidad', 'detalles.producto'])->get();
-            return response()->json($pedidos, 200);
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'No se pudieron obtener los pedidos',
-                'error' => $e->getMessage()
-            ], 404);
+  public function index()
+{
+    try {
+        $pedidos = Pedido::with([
+            'cliente',
+            'metodoPago',
+            'estado',
+            'modalidad',
+            'detalles.producto'
+        ])->get();
+
+        foreach ($pedidos as $pedido) {
+            $agrupados = [];
+
+            // 🔹 Recorremos todos los detalles
+            foreach ($pedido->detalles as $detalle) {
+                if ($detalle->producto) {
+                    $idProd = $detalle->producto->id_producto;
+
+                    // Si ya existe este producto en el array, acumulamos cantidad y subtotal
+                    if (isset($agrupados[$idProd])) {
+                        $agrupados[$idProd]['cantidad'] += $detalle->cantidad;
+                        $agrupados[$idProd]['subtotal'] += $detalle->producto->precio_producto * $detalle->cantidad;
+                    } else {
+                        // Si no existe aún, lo agregamos
+                        $agrupados[$idProd] = [
+                            'producto' => $detalle->producto,
+                            'cantidad' => $detalle->cantidad,
+                            'subtotal' => $detalle->producto->precio_producto * $detalle->cantidad
+                        ];
+                    }
+                }
+            }
+
+            // 🔹 Calculamos el total del pedido
+            $pedido->monto_total = collect($agrupados)->sum('subtotal');
+
+            // 🔹 Reemplazamos los detalles originales por los agrupados
+            $pedido->detalles = array_values($agrupados);
         }
+
+        return response()->json($pedidos, 200);
+
+    } catch (\Exception $e) {
+        return response()->json([
+            'message' => 'No se pudieron obtener los pedidos',
+            'error' => $e->getMessage()
+        ], 404);
     }
+}
+
+
 
     /**
      * @OA\Post(
