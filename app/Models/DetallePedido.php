@@ -17,15 +17,16 @@ class DetallePedido extends Model
         'subtotal'
     ];
 
+    // app/Models/DetallePedido.php
+    public function producto()
+    {
+        return $this->belongsTo(Producto::class, 'id_producto', 'id_producto');
+    }
+
+
     public function pedido()
     {
         return $this->belongsTo(Pedido::class, 'id_pedido');
     }
-    public function producto()
-    {
-        return $this->belongsTo(Producto::class, 'id_producto');
-    }
-
-    
 
 }

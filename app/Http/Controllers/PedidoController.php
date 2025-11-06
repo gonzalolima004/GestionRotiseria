@@ -23,7 +23,7 @@ class PedidoController extends Controller
     public function index()
     {
         try {
-            $pedidos = Pedido::with(['cliente', 'metodoPago', 'estado', 'modalidad', 'detalles'])->get();
+            $pedidos = Pedido::with(['cliente', 'metodoPago', 'estado', 'modalidad', 'detalles.producto'])->get();
             return response()->json($pedidos, 200);
         } catch (\Exception $e) {
             return response()->json([
@@ -97,7 +97,7 @@ class PedidoController extends Controller
      */
     public function show($id)
     {
-        $pedido = Pedido::with(['cliente', 'metodoPago', 'estado', 'modalidad', 'detalles'])->find($id);
+        $pedido = Pedido::with(['cliente', 'metodoPago', 'estado', 'modalidad', 'detalles.producto'])->find($id);
 
         if (!$pedido) {
             return response()->json(['message' => 'Pedido no encontrado'], 404);
