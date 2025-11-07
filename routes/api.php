@@ -21,6 +21,7 @@ Route::apiResource('/detalle_pedidos', DetallePedidoController::class);
 
 Route::post('/pedidos', [PedidoController::class, 'store']);
 Route::put('/pedidos/{pedido}', [PedidoController::class, 'update']);
+Route::delete('/pedidos/{id}', [PedidoController::class, 'destroy']);
 Route::apiResource('/clientes', ClienteController::class);
 
 // Rutas protegidas
