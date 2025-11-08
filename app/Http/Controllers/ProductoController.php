@@ -223,9 +223,15 @@ class ProductoController extends Controller
 
             // Actualizar imagen si se envía una nueva
             if ($request->hasFile('imagen')) {
-                // Eliminar imagen anterior
+                // Eliminar imagen anterior si existe
                 if ($producto->imagen) {
-                    Storage::disk('public')->delete($producto->imagen);
+                    try {
+                        if (Storage::disk('public')->exists($producto->imagen)) {
+                            Storage::disk('public')->delete($producto->imagen);
+                        }
+                    } catch (\Exception $storageError) {
+                        \Log::warning('No se pudo eliminar la imagen anterior: ' . $storageError->getMessage());
+                    }
                 }
                 // Guardar nueva imagen
                 $path = $request->file('imagen')->store('productos', 'public');
@@ -280,18 +286,28 @@ class ProductoController extends Controller
                 return response()->json(['message' => 'Producto no encontrado'], 404);
             }
 
-            // Eliminar imagen del storage
+            // Intentar eliminar imagen del storage (no lanzar error si falla)
             if ($producto->imagen) {
-                Storage::disk('public')->delete($producto->imagen);
+                try {
+                    if (Storage::disk('public')->exists($producto->imagen)) {
+                        Storage::disk('public')->delete($producto->imagen);
+                    }
+                } catch (\Exception $storageError) {
+                    // Log del error pero continúa eliminando el producto
+                    \Log::warning('No se pudo eliminar la imagen: ' . $storageError->getMessage());
+                }
             }
 
+            // Eliminar el producto de la base de datos
             $producto->delete();
 
             return response()->json(['message' => 'Producto eliminado correctamente'], 200);
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Error al eliminar el producto',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile()
             ], 500);
         }
     }
