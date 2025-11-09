@@ -262,7 +262,7 @@ class ProductoController extends Controller
      * @OA\Delete(
      *     path="/api/productos/{id}",
      *     summary="Eliminar un producto",
-     *     description="Elimina un producto por ID. Requiere autenticación con token JWT.",
+     *     description="Elimina un producto por ID. Requiere autenticación con token JWT. Los detalles de pedido relacionados mostrarán 'Producto eliminado'.",
      *     tags={"Productos"},
      *     security={{"bearerAuth":{}}},
      *     @OA\Parameter(
@@ -299,9 +299,13 @@ class ProductoController extends Controller
             }
 
             // Eliminar el producto de la base de datos
+            // Los detalles de pedido tendrán id_producto = NULL automáticamente
             $producto->delete();
 
-            return response()->json(['message' => 'Producto eliminado correctamente'], 200);
+            return response()->json([
+                'message' => 'Producto eliminado correctamente. Los pedidos existentes mostrarán "Producto eliminado".'
+            ], 200);
+            
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Error al eliminar el producto',
