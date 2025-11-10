@@ -207,6 +207,17 @@ class PedidoController extends Controller
                 }
             }
 
+            if (isset($validated['id_estado_pedido']) && $validated['id_estado_pedido'] == 3) {
+                $cliente = Cliente::where('dni_cliente', $pedido->dni_cliente)->first();
+
+                if ($cliente && $cliente->telefono_cliente) {
+                    $mensaje = "¡Hola {$cliente->nombre_cliente}! Tu pedido N°{$pedido->id_pedido} fue RECHAZADO. ¡Disculpe las molestias y muchas gracias!";
+
+                    $response = $whatsapp->enviarMensaje($cliente->telefono_cliente, $mensaje);
+                    \Log::info("Mensaje enviado a WhatsApp:", $response);
+                }
+            }
+
             return response()->json([
                 'message' => 'Pedido actualizado correctamente',
                 'pedido' => $pedido
