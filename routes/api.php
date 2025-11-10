@@ -21,6 +21,7 @@ Route::apiResource('/detalle_pedidos', DetallePedidoController::class);
 
 Route::post('/pedidos', [PedidoController::class, 'store']);
 Route::put('/pedidos/{pedido}', [PedidoController::class, 'update']);
+Route::delete('/pedidos/{id}', [PedidoController::class, 'destroy']);
 Route::apiResource('/clientes', ClienteController::class);
 
 // Rutas protegidas
@@ -29,7 +30,10 @@ Route::group(['middleware' => ['jwt.auth']], function () {
     
     Route::apiResource('/categorias', CategoriaController::class)->except(['index', 'show']);
     Route::apiResource('/productos', ProductoController::class)->except(['index', 'show']);
+    
+    // ✅ Ruta adicional para actualizar productos con archivos (POST con _method=PUT)
+    Route::post('/productos/{id}', [ProductoController::class, 'update']);
+    
     Route::apiResource('/pedidos', PedidoController::class)->except(['store', 'update']);
     Route::apiResource('/ventas', VentaController::class);
-
 });

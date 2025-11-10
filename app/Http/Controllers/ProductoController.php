@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Producto;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 
 class ProductoController extends Controller
 {
@@ -45,14 +46,17 @@ class ProductoController extends Controller
      *     security={{"bearerAuth":{}}},
      *     @OA\RequestBody(
      *         required=true,
-     *         @OA\JsonContent(
-     *             required={"nombre_producto", "precio_producto", "id_categoria"},
-     *             @OA\Property(property="nombre_producto", type="string", maxLength=100, example="Coca Cola"),
-     *             @OA\Property(property="descripcion_producto", type="string", example="Bebida gaseosa sabor cola"),
-     *             @OA\Property(property="precio_producto", type="number", format="float", example=150.50),
-     *             @OA\Property(property="disponible", type="boolean", example=true),
-     *             @OA\Property(property="id_categoria", type="integer", example=1)
-     *             @OA\Property(property="imagen", type="file", description="Imagen del producto")
+     *         @OA\MediaType(
+     *             mediaType="multipart/form-data",
+     *             @OA\Schema(
+     *                 required={"nombre_producto", "precio_producto", "id_categoria"},
+     *                 @OA\Property(property="nombre_producto", type="string", maxLength=100, example="Coca Cola"),
+     *                 @OA\Property(property="descripcion_producto", type="string", maxLength=255, example="Bebida gaseosa sabor cola"),
+     *                 @OA\Property(property="precio_producto", type="number", format="float", example=150.50),
+     *                 @OA\Property(property="disponible", type="integer", enum={0, 1}, example=1, description="1=disponible, 0=no disponible"),
+     *                 @OA\Property(property="id_categoria", type="integer", example=1),
+     *                 @OA\Property(property="imagen", type="string", format="binary", description="Imagen del producto (jpg, jpeg, png, webp, gif)")
+     *             )
      *         )
      *     ),
      *     @OA\Response(response=201, description="Producto creado correctamente"),
@@ -61,42 +65,53 @@ class ProductoController extends Controller
      * )
      */
     public function store(Request $request)
-{
-    try {
-        $request->validate([
-            'nombre_producto' => 'required|string|max:100|unique:producto,nombre_producto',
-            'descripcion_producto' => 'nullable|string',
-            'precio_producto' => 'required|numeric|min:0',
-            'disponible' => 'boolean',
-            'id_categoria' => 'required|integer|exists:categoria,id_categoria',
-            'imagen' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
-        ]);
+    {
+        try {
+            // Validación
+            $validated = $request->validate([
+                'nombre_producto' => 'required|string|max:100',
+                'descripcion_producto' => 'nullable|string|max:255',
+                'precio_producto' => 'required|numeric|min:0',
+                'disponible' => 'nullable',
+                'id_categoria' => 'required|integer|exists:categoria,id_categoria',
+                'imagen' => 'nullable|image|mimes:jpg,jpeg,png,webp,gif|max:5120',
+            ]);
 
-        $data = $request->all();
+            // Preparar datos
+            $data = [
+                'nombre_producto' => $validated['nombre_producto'],
+                'descripcion_producto' => $validated['descripcion_producto'] ?? '',
+                'precio_producto' => $validated['precio_producto'],
+                'disponible' => $request->input('disponible', 1) == 1 ? 1 : 0,
+                'id_categoria' => $validated['id_categoria'],
+            ];
 
-        // ✅ convertir booleano disponible a entero (1 o 0)
-        $data['disponible'] = filter_var($request->input('disponible'), FILTER_VALIDATE_BOOLEAN) ? 1 : 0;
+            // Guardar imagen si existe
+            if ($request->hasFile('imagen')) {
+                $path = $request->file('imagen')->store('productos', 'public');
+                $data['imagen'] = $path;
+            }
 
-        // ✅ Guardar imagen en storage/app/public/productos
-        if ($request->hasFile('imagen')) {
-            $path = $request->file('imagen')->store('productos', 'public');
-            $data['imagen'] = $path;
+            // Crear producto
+            $producto = Producto::create($data);
+
+            return response()->json([
+                'message' => 'Producto creado correctamente',
+                'producto' => $producto
+            ], 201);
+
+        } catch (ValidationException $e) {
+            return response()->json([
+                'message' => 'Error de validación',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Error al crear el producto',
+                'error' => $e->getMessage()
+            ], 500);
         }
-
-        $producto = Producto::create($data);
-
-        return response()->json([
-            'message' => 'Producto creado correctamente',
-            'producto' => $producto
-        ], 201);
-    } catch (\Exception $e) {
-        return response()->json([
-            'message' => 'Error al crear el producto',
-            'error' => $e->getMessage()
-        ], 400);
     }
-}
-
 
     /**
      * @OA\Get(
@@ -116,23 +131,30 @@ class ProductoController extends Controller
      */
     public function show($id)
     {
-        $producto = Producto::with('categoria')->find($id);
+        try {
+            $producto = Producto::with('categoria')->find($id);
 
-        if (!$producto) {
-            return response()->json(['message' => 'Producto no encontrado'], 404);
-        }
+            if (!$producto) {
+                return response()->json(['message' => 'Producto no encontrado'], 404);
+            }
 
-        return response()->json([
+            return response()->json([
                 'message' => 'Producto obtenido correctamente',
                 'producto' => $producto
             ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Error al obtener el producto',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
-     * @OA\Put(
+     * @OA\Post(
      *     path="/api/productos/{id}",
      *     summary="Actualizar un producto existente",
-     *     description="Actualiza un producto por ID. Requiere autenticación con token JWT.",
+     *     description="Actualiza un producto por ID usando POST con _method=PUT. Requiere autenticación con token JWT.",
      *     tags={"Productos"},
      *     security={{"bearerAuth":{}}},
      *     @OA\Parameter(
@@ -144,17 +166,22 @@ class ProductoController extends Controller
      *     ),
      *     @OA\RequestBody(
      *         required=true,
-     *         @OA\JsonContent(
-     *             @OA\Property(property="nombre_producto", type="string", maxLength=100, example="Pepsi"),
-     *             @OA\Property(property="descripcion_producto", type="string", example="Bebida gaseosa sabor cola"),
-     *             @OA\Property(property="precio_producto", type="number", format="float", example=140.00),
-     *             @OA\Property(property="disponible", type="boolean", example=false),
-     *             @OA\Property(property="id_categoria", type="integer", example=2)
-     *             @OA\Property(property="imagen", type="file", description="Imagen del producto")
+     *         @OA\MediaType(
+     *             mediaType="multipart/form-data",
+     *             @OA\Schema(
+     *                 @OA\Property(property="nombre_producto", type="string", maxLength=100, example="Pepsi"),
+     *                 @OA\Property(property="descripcion_producto", type="string", maxLength=255, example="Bebida gaseosa sabor cola"),
+     *                 @OA\Property(property="precio_producto", type="number", format="float", example=140.00),
+     *                 @OA\Property(property="disponible", type="integer", enum={0, 1}, example=0, description="1=disponible, 0=no disponible"),
+     *                 @OA\Property(property="id_categoria", type="integer", example=2),
+     *                 @OA\Property(property="imagen", type="string", format="binary", description="Imagen del producto (jpg, jpeg, png, webp, gif)"),
+     *                 @OA\Property(property="_method", type="string", example="PUT", description="Método HTTP para actualización")
+     *             )
      *         )
      *     ),
      *     @OA\Response(response=200, description="Producto actualizado correctamente"),
      *     @OA\Response(response=404, description="Producto no encontrado"),
+     *     @OA\Response(response=422, description="Error de validación"),
      *     @OA\Response(response=500, description="Error interno")
      * )
      */
@@ -167,30 +194,62 @@ class ProductoController extends Controller
                 return response()->json(['message' => 'Producto no encontrado'], 404);
             }
 
-            $request->validate([
-                'nombre_producto' => 'string|max:100|unique:producto,nombre_producto,' . $producto->id_producto . ',id_producto',
-                'descripcion_producto' => 'nullable|string',
-                'precio_producto' => 'numeric|min:0',
-                'disponible' => 'boolean',
-                'id_categoria' => 'integer|exists:categoria,id_categoria',
-                'imagen' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            // Validación
+            $validated = $request->validate([
+                'nombre_producto' => 'nullable|string|max:100',
+                'descripcion_producto' => 'nullable|string|max:255',
+                'precio_producto' => 'nullable|numeric|min:0',
+                'disponible' => 'nullable',
+                'id_categoria' => 'nullable|integer|exists:categoria,id_categoria',
+                'imagen' => 'nullable|image|mimes:jpg,jpeg,png,webp,gif|max:5120',
             ]);
 
-            $data = $request->except('imagen');
-
-            if ($request->hasFile('imagen')) {
-                if ($producto->imagen) {
-                    Storage::disk('public')->delete($producto->imagen);
-                }
-                $data['imagen'] = $request->file('imagen')->store('productos', 'public');
+            // Actualizar solo los campos enviados
+            if ($request->has('nombre_producto')) {
+                $producto->nombre_producto = $validated['nombre_producto'];
+            }
+            if ($request->has('descripcion_producto')) {
+                $producto->descripcion_producto = $validated['descripcion_producto'] ?? '';
+            }
+            if ($request->has('precio_producto')) {
+                $producto->precio_producto = $validated['precio_producto'];
+            }
+            if ($request->has('disponible')) {
+                $producto->disponible = $request->input('disponible') == 1 ? 1 : 0;
+            }
+            if ($request->has('id_categoria')) {
+                $producto->id_categoria = $validated['id_categoria'];
             }
 
-            $producto->update($data);
+            // Actualizar imagen si se envía una nueva
+            if ($request->hasFile('imagen')) {
+                // Eliminar imagen anterior si existe
+                if ($producto->imagen) {
+                    try {
+                        if (Storage::disk('public')->exists($producto->imagen)) {
+                            Storage::disk('public')->delete($producto->imagen);
+                        }
+                    } catch (\Exception $storageError) {
+                        \Log::warning('No se pudo eliminar la imagen anterior: ' . $storageError->getMessage());
+                    }
+                }
+                // Guardar nueva imagen
+                $path = $request->file('imagen')->store('productos', 'public');
+                $producto->imagen = $path;
+            }
+
+            $producto->save();
 
             return response()->json([
                 'message' => 'Producto actualizado correctamente',
-                'producto' => $producto
+                'producto' => $producto->load('categoria')
             ], 200);
+
+        } catch (ValidationException $e) {
+            return response()->json([
+                'message' => 'Error de validación',
+                'errors' => $e->errors()
+            ], 422);
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Error al actualizar el producto',
@@ -203,7 +262,7 @@ class ProductoController extends Controller
      * @OA\Delete(
      *     path="/api/productos/{id}",
      *     summary="Eliminar un producto",
-     *     description="Elimina un producto por ID. Requiere autenticación con token JWT.",
+     *     description="Elimina un producto por ID. Requiere autenticación con token JWT. Los detalles de pedido relacionados mostrarán 'Producto eliminado'.",
      *     tags={"Productos"},
      *     security={{"bearerAuth":{}}},
      *     @OA\Parameter(
@@ -227,19 +286,33 @@ class ProductoController extends Controller
                 return response()->json(['message' => 'Producto no encontrado'], 404);
             }
 
+            // Intentar eliminar imagen del storage (no lanzar error si falla)
             if ($producto->imagen) {
-                Storage::disk('public')->delete($producto->imagen);
+                try {
+                    if (Storage::disk('public')->exists($producto->imagen)) {
+                        Storage::disk('public')->delete($producto->imagen);
+                    }
+                } catch (\Exception $storageError) {
+                    // Log del error pero continúa eliminando el producto
+                    \Log::warning('No se pudo eliminar la imagen: ' . $storageError->getMessage());
+                }
             }
 
+            // Eliminar el producto de la base de datos
+            // Los detalles de pedido tendrán id_producto = NULL automáticamente
             $producto->delete();
 
-            return response()->json(['message' => 'Producto eliminado correctamente'], 200);
+            return response()->json([
+                'message' => 'Producto eliminado correctamente. Los pedidos existentes mostrarán "Producto eliminado".'
+            ], 200);
+            
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Error al eliminar el producto',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile()
             ], 500);
         }
     }
-
 }
