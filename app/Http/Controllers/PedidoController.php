@@ -20,7 +20,7 @@ class PedidoController extends Controller
      *     @OA\Response(response=404, description="No se pudieron obtener los pedidos")
      * )
      */
-  public function index()
+ public function index()
 {
     try {
         $pedidos = Pedido::with([
@@ -34,17 +34,14 @@ class PedidoController extends Controller
         foreach ($pedidos as $pedido) {
             $agrupados = [];
 
-            // 🔹 Recorremos todos los detalles
             foreach ($pedido->detalles as $detalle) {
                 if ($detalle->producto) {
                     $idProd = $detalle->producto->id_producto;
 
-                    // Si ya existe este producto en el array, acumulamos cantidad y subtotal
                     if (isset($agrupados[$idProd])) {
                         $agrupados[$idProd]['cantidad'] += $detalle->cantidad;
                         $agrupados[$idProd]['subtotal'] += $detalle->producto->precio_producto * $detalle->cantidad;
-                    } else {
-                        // Si no existe aún, lo agregamos
+                    } else {    
                         $agrupados[$idProd] = [
                             'producto' => $detalle->producto,
                             'cantidad' => $detalle->cantidad,
@@ -54,10 +51,14 @@ class PedidoController extends Controller
                 }
             }
 
-            // 🔹 Calculamos el total del pedido
-            $pedido->monto_total = collect($agrupados)->sum('subtotal');
+            $total = collect($agrupados)->sum('subtotal');
 
-            // 🔹 Reemplazamos los detalles originales por los agrupados
+            if ($pedido->id_modalidad_entrega == 2) {
+                $total += 2500;
+            }
+
+            $pedido->monto_total = $total;
+
             $pedido->detalles = array_values($agrupados);
         }
 
@@ -70,6 +71,7 @@ class PedidoController extends Controller
         ], 404);
     }
 }
+
 
 
 
