@@ -20,7 +20,7 @@ class PedidoController extends Controller
      *     @OA\Response(response=404, description="No se pudieron obtener los pedidos")
      * )
      */
- public function index()
+  public function index()
 {
     try {
         $pedidos = Pedido::with([
@@ -34,14 +34,17 @@ class PedidoController extends Controller
         foreach ($pedidos as $pedido) {
             $agrupados = [];
 
+            // 🔹 Recorremos todos los detalles
             foreach ($pedido->detalles as $detalle) {
                 if ($detalle->producto) {
                     $idProd = $detalle->producto->id_producto;
 
+                    // Si ya existe este producto en el array, acumulamos cantidad y subtotal
                     if (isset($agrupados[$idProd])) {
                         $agrupados[$idProd]['cantidad'] += $detalle->cantidad;
                         $agrupados[$idProd]['subtotal'] += $detalle->producto->precio_producto * $detalle->cantidad;
-                    } else {    
+                    } else {
+                        // Si no existe aún, lo agregamos
                         $agrupados[$idProd] = [
                             'producto' => $detalle->producto,
                             'cantidad' => $detalle->cantidad,
@@ -51,14 +54,10 @@ class PedidoController extends Controller
                 }
             }
 
-            $total = collect($agrupados)->sum('subtotal');
+            // 🔹 Calculamos el total del pedido
+            $pedido->monto_total = collect($agrupados)->sum('subtotal');
 
-            if ($pedido->id_modalidad_entrega == 2) {
-                $total += 2500;
-            }
-
-            $pedido->monto_total = $total;
-
+            // 🔹 Reemplazamos los detalles originales por los agrupados
             $pedido->detalles = array_values($agrupados);
         }
 
@@ -71,7 +70,6 @@ class PedidoController extends Controller
         ], 404);
     }
 }
-
 
 
 
@@ -211,24 +209,13 @@ class PedidoController extends Controller
  if (isset($validated['id_estado_pedido']) && $validated['id_estado_pedido'] == 3) {
                 $cliente = Cliente::where('dni_cliente', $pedido->dni_cliente)->first();
 
-
                 if ($cliente && $cliente->telefono_cliente) {
                     $mensaje = "¡Hola {$cliente->nombre_cliente}! Tu pedido fue RECHAZADO. Disculpe las molestias, ¡Muchas gracias!";
-
-            if (isset($validated['id_estado_pedido']) && $validated['id_estado_pedido'] == 3) {
-                $cliente = Cliente::where('dni_cliente', $pedido->dni_cliente)->first();
-
-                if ($cliente && $cliente->telefono_cliente) {
-                    $mensaje = "¡Hola {$cliente->nombre_cliente}! Tu pedido N°{$pedido->id_pedido} fue RECHAZADO. ¡Disculpe las molestias y muchas gracias!";
-
 
                     $response = $whatsapp->enviarMensaje($cliente->telefono_cliente, $mensaje);
                     \Log::info("Mensaje enviado a WhatsApp:", $response);
                 }
             }
-
-
- 
             return response()->json([
                 'message' => 'Pedido actualizado correctamente',
                 'pedido' => $pedido

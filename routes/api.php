@@ -10,10 +10,6 @@ use App\Http\Controllers\DetallePedidoController;
 use App\Http\Controllers\PedidoController;
 use App\Http\Controllers\ProductoController;
 use App\Http\Controllers\VentaController;
-use App\Http\Controllers\PasswordResetController;
-
-Route::post('/forgot-password', [PasswordResetController::class, 'sendResetLinkEmail']);
-Route::post('/reset-password', [PasswordResetController::class, 'resetPassword']);
 
 // Rutas públicas
 Route::post('/register', [AuthController::class, 'register']);
